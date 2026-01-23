@@ -1,49 +1,38 @@
-# Starlight Starter Kit: Basics
+# JSONQL Documentation Site
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+Official docs, developer guide, and marketing site for JSONQL.
 
-```
-npm create astro@latest -- --template starlight
-```
+## Quick Start
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro + Starlight project, you'll see the following folders and files:
-
-```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+```bash
+npm install
+npm run dev
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+The site runs at `http://localhost:4321` by default.
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+## Build
 
-Static assets, like favicons, can be placed in the `public/` directory.
+```bash
+npm run build
+npm run preview
+```
 
-## 🧞 Commands
+## Deployment (Cloudflare Pages)
 
-All commands are run from the root of the project, from a terminal:
+1. Create a new Cloudflare Pages project and connect this repo.
+2. Set the build command to `npm run build`.
+3. Set the output directory to `dist`.
+4. Use Node.js 18+.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+Astro is configured with the Cloudflare adapter in `astro.config.mjs`.
 
-## 👀 Want to learn more?
+## Content
 
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+Docs live in `src/content/docs/`. Add or edit `.md` / `.mdx` files to update navigation and content.
+
+## Branding
+
+- Logo: `public/logo.svg`
+- Favicon: `public/favicon.svg`
+- Theme overrides: `src/styles/custom.css`

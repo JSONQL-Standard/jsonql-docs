@@ -1,0 +1,10 @@
+.header .site-title span {
+  display: none;
+}
+
+:root {
+  --sl-color-accent: #37B3FA;
+  --sl-scrollbar-color: #37B3FA;
+  --sl-color-text-accent: #37B3FA;
+  --sl-color-accent-high: #37B3FA;
+}

@@ -1,5 +1,5 @@
 {
-  "name": "workspaces-jsonql-docs",
+  "name": "jsonql-docs",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -10,8 +10,10 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^12.0.1",
     "@astrojs/starlight": "^0.37.3",
     "astro": "^5.6.1",
-    "sharp": "^0.34.2"
+    "sharp": "^0.34.2",
+    "starlight-theme-galaxy": "^0.7.0"
   }
 }
