@@ -2,45 +2,34 @@
 title: JSONQL Documentation
 description: JSON-native query language and multi-SDK ecosystem for modern APIs and databases.
 template: splash
-hero:
-  tagline: Build data APIs that speak JSON from end to end.
-  image:
-    file: ../../assets/logo.svg
-  actions:
-    - text: Get Started
-      link: /getting-started/
-      icon: right-arrow
-    - text: Explore SDKs
-      link: /sdk/go/
-    - text: GitHub
-      link: https://github.com/JSONQL-Standard
-      icon: external
-      variant: minimal
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
+import HeroLayout from '../../components/HeroLayout.astro';
+
+<HeroLayout />
 
 ## Why JSONQL
 
 JSONQL is a JSON-native query language and tooling ecosystem that lets you define, validate, and execute queries across databases and APIs. It focuses on portability, strongly-typed SDKs, and a consistent developer experience.
 
 <CardGrid stagger>
-  <Card title="Developer Guide" icon="book">
+  <Card title="Developer Guide" icon="document">
     Learn the core concepts, architecture, and workflow for building JSONQL-powered services.
   </Card>
-  <Card title="Query Language" icon="braces">
+  <Card title="Query Language" icon="magnifier">
     Understand the JSONQL grammar, operators, and execution model.
   </Card>
-  <Card title="SDKs" icon="code">
+  <Card title="SDKs" icon="laptop">
     Ship with the Go, TypeScript, Python, and Java SDKs (more coming).
   </Card>
-  <Card title="Specification" icon="document">
+  <Card title="Specification" icon="open-book">
     Read the canonical spec and compliance guidance.
   </Card>
-  <Card title="Playground" icon="sparkle">
+  <Card title="Playground" icon="rocket">
     Try JSONQL in a live environment and validate queries instantly.
   </Card>
-  <Card title="Roadmap" icon="list">
+  <Card title="Roadmap" icon="list-format">
     See what we’re building next and how you can contribute.
   </Card>
 </CardGrid>

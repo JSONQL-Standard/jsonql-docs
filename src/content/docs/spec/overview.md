@@ -3,13 +3,35 @@ title: Specification Overview
 description: Canonical JSONQL specification and compliance.
 ---
 
-The JSONQL spec defines the query grammar, adapters, and compliance expectations.
+The JSONQL spec defines the query grammar, adapters, and compliance expectations to ensure interoperability across all supported SDKs and databases.
 
-## Key Documents
+## The Standard
 
-- `jsonql-spec` repository
-- Compliance tests in `jsonql-tests`
+**JSONQL** is a secure, lightweight, and polyglot JSON-based query language for filtering, sorting, pagination, and field selection.
 
-## Compliance
+It is designed to be:
+- **Framework-agnostic** (Express, Spring, Gin, Actix, etc.)
+- **Database-agnostic** (PostgreSQL, MySQL, SQLite, etc.)
+- **Secure by design** (parameterized, no eval)
 
-Use the test runner to validate SDKs and adapters against the spec. This ensures consistent behavior across ecosystems.
+### Versioning
+
+| Version | Status | Description |
+| :--- | :--- | :--- |
+| **v1.0** | Stable | The current standard for all production SDKs. |
+| **v1.1** | Draft | Upcoming features including deep relationship filtering and aggregation. |
+
+## Query Structure
+
+A valid JSONQL query object follows this structure:
+
+```json
+{
+  "version": "1.0",
+  "where": { /* conditions */ },
+  "sort": "created_at",
+  "limit": 50,
+  "offset": 0,
+  "fields": ["id", "name", "email"]
+}
+```

@@ -1,0 +1,63 @@
+<svg viewBox="0 0 1200 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="JSON input flowing through JSONQL to multiple databases">
+  <style>
+    .frame { fill: rgba(0, 0, 0, 0.0); stroke: #2a303a; stroke-width: 2; }
+    .panel { fill: rgba(0, 194, 255, 0.06); stroke: #00c2ff; stroke-width: 2; }
+    .label { fill: #e6f2ff; font: 600 18px 'JetBrains Mono', monospace; letter-spacing: 0.06em; }
+    .code { fill: #b3c1d3; font: 500 14px 'JetBrains Mono', monospace; }
+    .chip { fill: #0b0f16; stroke: #3a4150; stroke-width: 1.5; }
+    .chip-text { fill: #c5d6ea; font: 600 12px 'JetBrains Mono', monospace; }
+    .line { fill: none; stroke: #00c2ff; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 10 10; animation: flow 6s linear infinite; }
+    .pulse { fill: #00c2ff; animation: pulse 2.4s ease-in-out infinite; }
+    .pulse.delay { animation-delay: 0.8s; }
+    .pulse.delay-2 { animation-delay: 1.6s; }
+
+    @keyframes flow {
+      from { stroke-dashoffset: 0; opacity: 0.4; }
+      50% { opacity: 1; }
+      to { stroke-dashoffset: -200; opacity: 0.4; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.4; }
+      50% { transform: scale(1.6); opacity: 1; }
+    }
+  </style>
+
+  <rect x="20" y="24" width="1160" height="312" rx="24" class="frame" />
+
+  <rect x="60" y="70" width="300" height="220" rx="18" class="panel" />
+  <text x="90" y="110" class="label">JSON INPUT</text>
+  <text x="90" y="145" class="code">{</text>
+  <text x="110" y="168" class="code">"from": "users",</text>
+  <text x="110" y="190" class="code">"select": ["id", "email"],</text>
+  <text x="110" y="212" class="code">"where": {"status": "active"}</text>
+  <text x="90" y="236" class="code">}</text>
+
+  <rect x="450" y="70" width="300" height="220" rx="18" class="panel" />
+  <text x="490" y="110" class="label">JSONQL</text>
+  <text x="490" y="145" class="code">validate → plan → execute</text>
+  <rect x="490" y="170" width="220" height="38" rx="10" class="chip" />
+  <text x="505" y="194" class="chip-text">middleware + adapters</text>
+  <rect x="490" y="220" width="180" height="38" rx="10" class="chip" />
+  <text x="505" y="244" class="chip-text">hydrator</text>
+
+  <rect x="840" y="70" width="300" height="220" rx="18" class="panel" />
+  <text x="870" y="110" class="label">TARGETS</text>
+  <rect x="870" y="135" width="120" height="34" rx="10" class="chip" />
+  <text x="885" y="158" class="chip-text">Postgres</text>
+  <rect x="1010" y="135" width="110" height="34" rx="10" class="chip" />
+  <text x="1025" y="158" class="chip-text">MySQL</text>
+  <rect x="870" y="180" width="120" height="34" rx="10" class="chip" />
+  <text x="885" y="203" class="chip-text">SQLite</text>
+  <rect x="1010" y="180" width="110" height="34" rx="10" class="chip" />
+  <text x="1025" y="203" class="chip-text">API</text>
+  <rect x="870" y="225" width="250" height="38" rx="10" class="chip" />
+  <text x="885" y="249" class="chip-text">Go · TS · Python · Java</text>
+
+  <path d="M360 180 C 400 180, 420 180, 450 180" class="line" />
+  <path d="M750 180 C 790 180, 810 180, 840 180" class="line" />
+
+  <circle cx="405" cy="180" r="4" class="pulse" />
+  <circle cx="795" cy="180" r="4" class="pulse delay" />
+  <circle cx="990" cy="120" r="4" class="pulse delay-2" />
+</svg>
