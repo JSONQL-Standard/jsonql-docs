@@ -55,7 +55,10 @@ export default defineConfig({
             },
             {
                 label: 'Specification',
-                items: [{ label: 'Spec Overview', slug: 'spec/overview' }],
+                items: [
+                    { label: 'Spec Overview', slug: 'spec/overview' },
+                    { label: 'Compliance Testing', slug: 'spec/compliance' },
+                ],
             },
             {
                 label: 'Project',

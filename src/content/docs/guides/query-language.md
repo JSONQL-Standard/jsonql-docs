@@ -3,45 +3,254 @@ title: Query Language
 description: The JSONQL grammar, operators, and execution rules.
 ---
 
-JSONQL queries are JSON objects. Common fields include:
+JSONQL queries are JSON objects sent to the server via POST body or `?q=` query parameter. This page covers the full grammar.
 
-- `from`: source collection or table
-- `select`: array of fields
-- `where`: filter object
-- `limit` / `offset`: pagination
-- `orderBy`: sorting
-- `include`: nested relationships
+## Basic Query
+
+```json
+{
+  "version": "1.0",
+  "fields": ["id", "name", "email"],
+  "where": { "status": { "eq": "active" } },
+  "sort": ["-created_at"],
+  "limit": 20,
+  "skip": 0
+}
+```
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `version` | `"1.0"` or `"1.1"` | Spec version (required in v1.0) |
+| `fields` | `string[]` | Columns to return. Omit for all columns. |
+| `where` | `object` | Filter conditions |
+| `sort` | `string` or `string[]` | Prefix `-` for descending |
+| `limit` | `integer` | Maximum rows to return |
+| `skip` | `integer` | Number of rows to skip (offset) |
+| `include` | `string[]` or `object` | Eager-load related resources |
 
 ## Filters
 
-Filters are expressed as JSON conditions:
+### Comparison Operators
+
+```json
+{
+  "where": {
+    "age": { "gte": 21 },
+    "status": { "eq": "active" },
+    "score": { "lt": 100 }
+  }
+}
+```
+
+All comparison operators: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`.
+
+Multiple conditions at the same level are combined with implicit AND.
+
+### Set Operators
+
+```json
+{
+  "where": {
+    "role": { "in": ["admin", "editor"] },
+    "status": { "nin": ["banned", "suspended"] }
+  }
+}
+```
+
+### String Operators
+
+```json
+{
+  "where": {
+    "name": { "contains": "john" },
+    "email": { "ends": "@company.com" },
+    "title": { "starts": "How to" }
+  }
+}
+```
+
+String operators are case-insensitive by default.
+
+### Logical Operators
+
+Use `and`, `or`, and `not` to compose complex filters:
 
 ```json
 {
   "where": {
     "and": [
-      { "status": "active" },
-      { "age": { "gte": 21 } }
+      { "age": { "gte": 18 } },
+      {
+        "or": [
+          { "role": { "eq": "admin" } },
+          { "email": { "ends": "@company.com" } }
+        ]
+      }
     ]
   }
 }
 ```
 
-## Relationships
+### Field-to-Field Comparison
 
-Use `include` to request nested results:
+Compare one field against another using the `field` wrapper:
+
+```json
+{
+  "where": {
+    "salePrice": { "gt": { "field": "basePrice" } }
+  }
+}
+```
+
+## Sorting
+
+Sort by one or more fields. Prefix with `-` for descending order:
+
+```json
+{
+  "sort": ["-created_at", "name"]
+}
+```
+
+Single-field shorthand:
+
+```json
+{
+  "sort": "-created_at"
+}
+```
+
+## Pagination
+
+```json
+{
+  "limit": 25,
+  "skip": 50
+}
+```
+
+SDKs enforce a configurable `maxLimit` (default 1000) to prevent unbounded queries.
+
+## Relationships (Include)
+
+### Simple Include (v1.0)
+
+Request related resources as a flat list of relation names:
 
 ```json
 {
   "from": "users",
-  "select": ["id", "email"],
+  "fields": ["id", "name"],
+  "include": ["posts", "profile"]
+}
+```
+
+### Advanced Include with Sub-Queries (v1.1)
+
+Apply filters, sorting, field selection, and limits to included relations:
+
+```json
+{
   "include": {
-    "orders": {
-      "select": ["id", "total"],
-      "limit": 3
+    "posts": {
+      "fields": ["id", "title", "slug"],
+      "where": { "published": { "eq": true } },
+      "sort": "-created_at",
+      "limit": 5
+    },
+    "profile": {
+      "fields": ["bio", "avatar_url"]
     }
   }
 }
 ```
 
-For full detail, see the [Specification](/spec/overview/).
+## Aggregations (v1.1)
+
+Perform calculations on datasets:
+
+```json
+{
+  "aggregate": {
+    "total_users": { "count": "id" },
+    "average_age": { "avg": "age" },
+    "max_score": { "max": "score" },
+    "total_revenue": { "sum": "amount" },
+    "oldest": { "min": "birth_date" }
+  }
+}
+```
+
+Supported functions: `count`, `sum`, `avg`, `min`, `max`.
+
+## Grouping (v1.1)
+
+Group results by specific fields, typically combined with aggregations:
+
+```json
+{
+  "groupBy": ["role"],
+  "aggregate": {
+    "count": { "count": "id" },
+    "avg_age": { "avg": "age" }
+  }
+}
+```
+
+## Distinct (v1.1)
+
+Select unique values:
+
+```json
+{
+  "fields": ["category"],
+  "distinct": true
+}
+```
+
+Or specify which fields should be distinct:
+
+```json
+{
+  "distinct": ["category", "status"]
+}
+```
+
+## Mutations
+
+JSONQL also supports data mutations through the same JSON interface:
+
+### Create (INSERT)
+
+```json
+{
+  "data": { "name": "Alice", "email": "alice@example.com" }
+}
+```
+
+### Update (PATCH)
+
+```json
+{
+  "patch": { "name": "Bob" },
+  "where": { "id": { "eq": 1 } }
+}
+```
+
+### Delete (DELETE)
+
+```json
+{
+  "where": { "id": { "eq": 1 } }
+}
+```
+
+The HTTP method determines the operation type: `POST` for create, `PATCH`/`PUT` for update, `DELETE` for delete.
+
+## Full Reference
+
+For the complete specification, see:
+- [JSONQL v1.0 Specification](https://github.com/JSONQL-Standard/jsonql-spec/blob/main/v1.md)
+- [JSONQL v1.1 Specification](https://github.com/JSONQL-Standard/jsonql-spec/blob/main/v1.1.md)
+- [JSON Schema](https://github.com/JSONQL-Standard/jsonql-spec/blob/main/schema.json)
