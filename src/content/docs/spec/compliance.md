@@ -10,11 +10,11 @@ Every JSONQL SDK and adapter is tested against the same compliance suite to guar
 | Metric | Value |
 |--------|-------|
 | **SDKs** | 4 (Go, TypeScript, Java, Python) |
-| **Frameworks** | 11 (Gin, Echo, net/http, Express, Fastify, NestJS, Spring Boot, Jakarta EE, Flask, FastAPI, Django) |
+| **Frameworks** | 9 implemented (Gin, Echo, net/http, Express, Fastify, NestJS, Flask, FastAPI, Django); 6 compliance-tested |
 | **Databases** | 3 (PostgreSQL, MySQL, SQLite) |
-| **Total containers** | 33 |
+| **Total containers** | 18 (6 adapters × 3 databases) |
 | **Tests per container** | 65 |
-| **Total test executions** | 2,145 |
+| **Total test executions** | 1,170 |
 
 ## Test Matrix
 
@@ -36,20 +36,13 @@ Every SDK is tested against every combination of its supported frameworks and da
 | **Fastify** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
 | **NestJS** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
 
-### Java SDK (6 containers)
+### Java SDK
 
-| Adapter | PostgreSQL | MySQL | SQLite |
-|---------|:----------:|:-----:|:------:|
-| **Spring Boot** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
-| **Jakarta EE** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
+The Java SDK provides core engine functionality (transpiler, builder, engine, lifecycle hooks) but does not yet have framework adapters. Compliance testing will be added when adapters are available.
 
-### Python SDK (9 containers)
+### Python SDK
 
-| Adapter | PostgreSQL | MySQL | SQLite |
-|---------|:----------:|:-----:|:------:|
-| **Flask** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
-| **FastAPI** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
-| **Django** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
+The Python SDK has Flask, FastAPI, and Django adapters implemented but they are not yet integrated into the `jsonql-tests` compliance suite.
 
 ## Test Categories
 
@@ -73,29 +66,16 @@ The 65 compliance tests are organized into 11 categories:
 
 ### Architecture
 
-```
-┌──────────────────────────────┐
-│        Test Runner           │
-│   (pytest + ecosystem_runner)│
-└──────────┬───────────────────┘
-           │
-           ▼
-┌──────────────────────────────┐
-│      1. Provision DB         │
-│   DDL + seed data per test   │
-└──────────┬───────────────────┘
-           │
-           ▼
-┌──────────────────────────────┐
-│    2. HTTP Request           │
-│   POST to adapter container  │
-└──────────┬───────────────────┘
-           │
-           ▼
-┌──────────────────────────────┐
-│    3. Validate Response      │
-│   Status, headers, JSON body │
-└──────────────────────────────┘
+```mermaid
+graph TD
+    Runner["Test Runner<br/>(pytest + ecosystem_runner)"]
+    Provision["1. Provision DB<br/>DDL + seed data per test"]
+    Request["2. HTTP Request<br/>POST to adapter container"]
+    Validate["3. Validate Response<br/>Status, headers, JSON body"]
+
+    Runner --> Provision
+    Provision --> Request
+    Request --> Validate
 ```
 
 Each test case is a JSON fixture that defines:
@@ -141,8 +121,6 @@ cd jsonql-tests
 ```bash
 ./run_tests.sh --target go      # All Go adapters
 ./run_tests.sh --target ts      # All TypeScript adapters
-./run_tests.sh --target java    # All Java adapters
-./run_tests.sh --target py      # All Python adapters
 ```
 
 #### Filtered by Framework
@@ -150,7 +128,6 @@ cd jsonql-tests
 ```bash
 ./run_tests.sh --target gin     # Go Gin × all DBs
 ./run_tests.sh --target express # TS Express × all DBs
-./run_tests.sh --target flask   # Python Flask × all DBs
 ```
 
 #### Filtered by Database

@@ -10,8 +10,8 @@ The JSONQL spec defines the query grammar, adapters, and compliance expectations
 **JSONQL** is a secure, lightweight, and polyglot JSON-based query language for filtering, sorting, pagination, and field selection.
 
 It is designed to be:
-- **Framework-agnostic** (Express, Fastify, NestJS, Gin, Echo, Spring Boot, Jakarta EE, Flask, FastAPI, Django)
-- **Database-agnostic** (PostgreSQL, MySQL, SQLite)
+- **Framework-agnostic** (Express, Fastify, NestJS, Gin, Echo, Flask, FastAPI, Django)
+- **Database-agnostic** (PostgreSQL, MySQL, SQLite, with MSSQL and MongoDB dialect support)
 - **Secure by design** (parameterized, no eval, no regex execution)
 
 ### Versioning
