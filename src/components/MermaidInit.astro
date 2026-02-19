@@ -1,0 +1,108 @@
+<style>
+  .mermaid-wrapper {
+    position: relative;
+    cursor: zoom-in;
+  }
+  .mermaid-wrapper:hover::after {
+    content: '⤢';
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    font-size: 1.2rem;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .mermaid-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.8);
+    cursor: zoom-out;
+    padding: 2rem;
+  }
+  .mermaid-overlay .mermaid {
+    max-width: 95vw;
+    max-height: 95vh;
+    overflow: auto;
+    background: var(--sl-color-bg, #fff);
+    border-radius: 0.5rem;
+    padding: 2rem;
+  }
+  .mermaid-overlay .mermaid svg {
+    width: 100%;
+    height: auto;
+  }
+</style>
+<script>
+  // Client-side Mermaid rendering for ```mermaid code blocks
+  async function renderMermaid() {
+    const mermaid = (await import('mermaid')).default;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: document.documentElement.dataset.theme === 'dark' ? 'dark' : 'default',
+    });
+
+    // Starlight uses Expressive Code which wraps code blocks in
+    // <div class="expressive-code"><figure><pre data-language="mermaid">...
+    const figures = document.querySelectorAll('pre[data-language="mermaid"]');
+    for (const pre of figures) {
+      // Extract source line-by-line from Expressive Code's ec-line divs
+      const lines = pre.querySelectorAll('.ec-line');
+      let source = '';
+      if (lines.length > 0) {
+        source = Array.from(lines).map(line => line.textContent ?? '').join('\n');
+      } else {
+        source = pre.textContent?.trim() ?? '';
+      }
+
+      if (!source) continue;
+
+      // Replace the entire expressive-code wrapper div
+      const wrapper = pre.closest('.expressive-code') ?? pre.parentElement;
+      if (!wrapper) continue;
+
+      const mermaidDiv = document.createElement('div');
+      mermaidDiv.classList.add('mermaid');
+      const id = `mermaid-${Math.random().toString(36).slice(2, 9)}`;
+
+      try {
+        const { svg } = await mermaid.render(id, source);
+        mermaidDiv.innerHTML = svg;
+
+        // Wrap in a clickable container for enlarge
+        const container = document.createElement('div');
+        container.classList.add('mermaid-wrapper');
+        container.appendChild(mermaidDiv);
+        container.addEventListener('click', () => {
+          const overlay = document.createElement('div');
+          overlay.classList.add('mermaid-overlay');
+          const clone = mermaidDiv.cloneNode(true) as HTMLElement;
+          overlay.appendChild(clone);
+          overlay.addEventListener('click', () => overlay.remove());
+          document.addEventListener('keydown', function handler(e) {
+            if (e.key === 'Escape') {
+              overlay.remove();
+              document.removeEventListener('keydown', handler);
+            }
+          });
+          document.body.appendChild(overlay);
+        });
+
+        wrapper.replaceWith(container);
+      } catch (e) {
+        console.error('Mermaid render error:', e);
+      }
+    }
+  }
+
+  // Run after page load and on Starlight's view transitions
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderMermaid);
+  } else {
+    renderMermaid();
+  }
+  document.addEventListener('astro:after-swap', renderMermaid);
+</script>

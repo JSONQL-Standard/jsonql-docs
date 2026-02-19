@@ -16,6 +16,9 @@ export default defineConfig({
         plugins: [starlightThemeGalaxy()],
         title: 'JSONQL',
         description: 'A JSON-native query language and multi-SDK ecosystem for modern APIs and databases.',
+        components: {
+            Head: './src/components/Head.astro',
+        },
         logo: {
             src: './src/assets/logo.svg',
             alt: 'JSONQL',
