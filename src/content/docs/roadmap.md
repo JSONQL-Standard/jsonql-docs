@@ -8,14 +8,14 @@ description: What we have shipped and what is coming next.
 ### SDKs
 - **Go SDK** — Full v1.1 support with Gin, Echo, and net/http adapters
 - **TypeScript SDK** — Full v1.0+ support with Express, Fastify, and NestJS adapters
-- **Java SDK** — Full support with Spring Boot and Jakarta EE adapters
-- **Python SDK** — Full support with Flask, FastAPI, and Django adapters
+- **Java SDK** — Core engine with transpiler, builder, engine, lifecycle hooks (no framework adapters yet)
+- **Python SDK** — Alpha with Flask, FastAPI, and Django adapters (not yet in compliance suite)
 
 ### Databases
 - PostgreSQL, MySQL, and SQLite support across all SDKs
 
 ### Compliance
-- 33 adapter containers x 65 tests = **2,145 compliance test executions**, all passing
+- 6 adapter containers × 3 databases = **18 compliance configurations**, all passing
 - Automated CI pipeline with GitHub Actions
 
 ### Specification

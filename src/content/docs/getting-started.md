@@ -14,7 +14,7 @@ Choose the SDK for your runtime:
 | [Go](/sdk/go/) | `go get github.com/jsonql-standard/jsonql-go` | Gin, Echo, net/http |
 | [TypeScript](/sdk/typescript/) | `npm install @jsonql-standard/jsonql-ts` | Express, Fastify, NestJS |
 | [Python](/sdk/python/) | `pip install jsonql` | Flask, FastAPI, Django |
-| [Java](/sdk/java/) | Maven dependency | Spring Boot, Jakarta EE |
+| [Java](/sdk/java/) | Maven dependency | — (planned) |
 
 ## 2. Define a Query
 
@@ -111,7 +111,7 @@ cd jsonql-tests
 ./run_tests.sh --target your-adapter
 ```
 
-All 33 official containers pass 65/65 tests. See [Compliance Testing](/spec/compliance/) for details.
+All 6 compliance-tested containers (Go + TypeScript) pass 65/65 tests across 3 databases. See [Compliance Testing](/spec/compliance/) for details.
 
 ## Next Steps
 

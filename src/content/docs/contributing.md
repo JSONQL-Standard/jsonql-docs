@@ -14,7 +14,7 @@ We welcome contributions across SDKs, adapters, tooling, and docs.
 | [jsonql-ts](https://github.com/JSONQL-Standard/jsonql-ts) | TypeScript/Node.js SDK | TypeScript |
 | [jsonql-java](https://github.com/JSONQL-Standard/jsonql-java) | Java SDK | Java |
 | [jsonql-py](https://github.com/JSONQL-Standard/jsonql-py) | Python SDK | Python |
-| [jsonql-tests](https://github.com/JSONQL-Standard/jsonql-tests) | Compliance test suite (33 containers) | Python, Docker |
+| [jsonql-tests](https://github.com/JSONQL-Standard/jsonql-tests) | Compliance test suite (18 configurations) | Python, Docker |
 | [jsonql-docs](https://github.com/JSONQL-Standard/jsonql-docs) | This documentation site | Astro, MDX |
 
 ## Ways to Help
