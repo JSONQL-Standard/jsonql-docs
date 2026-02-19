@@ -54,7 +54,7 @@ Pick your language and framework:
 |----------|-----------|
 | **Go** | Gin, Echo, net/http |
 | **TypeScript** | Express, Fastify, NestJS |
-| **Java** | Spring Boot, Jakarta EE |
+| **Java** | — (planned) |
 | **Python** | Flask, FastAPI, Django |
 
 All combinations work with PostgreSQL, MySQL, and SQLite.

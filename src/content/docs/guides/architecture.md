@@ -7,14 +7,20 @@ JSONQL is a layered system with a clear separation of concerns. Every SDK (Go, T
 
 ## Pipeline
 
-```
-Client JSON → Parser → Validator → Transpiler → Driver → Hydrator → JSON Response
+```mermaid
+graph TD
+    Client["Client JSON"] --> Parser
+    Parser --> Validator
+    Validator --> Transpiler
+    Transpiler --> Driver
+    Driver --> Hydrator
+    Hydrator --> Response["JSON Response"]
 ```
 
 1. **Client** sends a JSONQL query as JSON (via POST body or `?q=` query param).
 2. **Parser** validates the query structure — field names, operators, nesting depth, limits.
 3. **Validator** checks schema permissions — is this field selectable? Can this relation be included? Is aggregation allowed?
-4. **Transpiler** converts the JSONQL query into dialect-specific SQL (Postgres, MySQL, or SQLite) with parameterized arguments.
+4. **Transpiler** converts the JSONQL query into dialect-specific SQL (Postgres, MySQL, SQLite, or MSSQL) or MongoDB aggregation pipeline, with parameterized arguments.
 5. **Driver** executes the SQL against the database and returns flat rows.
 6. **Hydrator** takes the flat SQL result set and reconstructs nested JSON, reassembling relationship data from JOINs.
 
@@ -35,29 +41,17 @@ Client JSON → Parser → Validator → Transpiler → Driver → Hydrator → 
 
 ## Ecosystem Map
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                     jsonql-spec                          │
-│              Specification + JSON Schema                 │
-└────────────────────────┬─────────────────────────────────┘
-                         │
-        ┌────────────────┼────────────────┬────────────────┐
-        ▼                ▼                ▼                ▼
-  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
-  │ jsonql-go│    │jsonql-ts │    │jsonql-java│   │ jsonql-py│
-  │          │    │          │    │          │    │          │
-  │ Gin      │    │ Express  │    │ Spring   │    │ Flask    │
-  │ Echo     │    │ Fastify  │    │ Jakarta  │    │ FastAPI  │
-  │ net/http │    │ NestJS   │    │   EE     │    │ Django   │
-  └────┬─────┘    └────┬─────┘    └────┬─────┘    └────┬─────┘
-       │               │               │               │
-       └───────────────┬┼───────────────┘               │
-                       ▼▼                               ▼
-              ┌──────────────────────────────────────────┐
-              │            jsonql-tests                  │
-              │  33 containers × 65 tests = 2,145        │
-              │  PostgreSQL · MySQL · SQLite              │
-              └──────────────────────────────────────────┘
+```mermaid
+graph TD
+    SPEC["jsonql-spec<br/>Specification + JSON Schema"]
+
+    SPEC --> GO["jsonql-go<br/>Gin · Echo · net/http"]
+    SPEC --> TS["jsonql-ts<br/>Express · Fastify · NestJS"]
+    SPEC --> JAVA["jsonql-java<br/>(core only)"]
+    SPEC --> PY["jsonql-py<br/>Flask · FastAPI · Django"]
+
+    GO -->|adapter containers| TESTS["jsonql-tests<br/>6 adapters × 3 databases = 18 configs<br/>PostgreSQL · MySQL · SQLite"]
+    TS -->|adapter containers| TESTS
 ```
 
 ## Cross-SDK Feature Matrix
@@ -75,7 +69,9 @@ Client JSON → Parser → Validator → Transpiler → Driver → Hydrator → 
 | Postgres dialect | ✅ | ✅ | ✅ | ✅ |
 | MySQL dialect | ✅ | ✅ | ✅ | ✅ |
 | SQLite dialect | ✅ | ✅ | ✅ | ✅ |
-| Framework adapters | 3 | 3 | 2 | 3 |
+| MSSQL dialect | ✅ | ✅ | ✅ | ✅ |
+| MongoDB transpiler | ✅ | ✅ | ✅ | ✅ |
+| Framework adapters | 3 | 3 | 0 | 3 |
 
 ## Security Model
 
