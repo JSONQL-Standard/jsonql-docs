@@ -15,7 +15,7 @@ The official Go implementation of the JSONQL Standard. Full v1.1 support with a 
 ## Features
 
 - Full JSONQL v1.1: selects, includes (relationships), filtering, sorting, pagination, aggregation, groupBy, distinct
-- Database agnostic with pluggable `Driver` interface
+- Database agnostic with pluggable `Driver` interface (PostgreSQL, SQLite, MSSQL, MongoDB drivers included)
 - Framework adapters for **Gin**, **Echo**, and **net/http**
 - Schema-based validation and SQL injection prevention (parameterized queries)
 - Fluent `QueryBuilder` and `MutationBuilder` APIs
@@ -105,6 +105,8 @@ The SDK follows a modular pipeline:
 | **PostgreSQL** | `github.com/jsonql-standard/jsonql-go/drivers/postgres` | `github.com/lib/pq` |
 | **SQLite** | `github.com/jsonql-standard/jsonql-go/drivers/sqlite` | `modernc.org/sqlite` |
 | **MySQL** | Dialect supported (`MySQLDialect`) | Bring your own driver |
+| **MSSQL** | `github.com/jsonql-standard/jsonql-go/drivers/mssql` | `github.com/denisenkom/go-mssqldb` |
+| **MongoDB** | `github.com/jsonql-standard/jsonql-go/drivers/mongodb` | `go.mongodb.org/mongo-driver` |
 
 ## Framework Adapters
 

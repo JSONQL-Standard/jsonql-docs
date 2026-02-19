@@ -16,7 +16,8 @@ The official Python SDK for JSONQL. Pythonic query building, SQL transpilation, 
 
 - Pythonic `QueryBuilder` and `MutationBuilder` with condition helpers
 - `Parser` for JSONQL query validation
-- `SQLTranspiler` with dialect support (Postgres, MySQL, SQLite)
+- `SQLTranspiler` with dialect support (Postgres, MySQL, SQLite, MSSQL)
+- `MongoTranspiler` for MongoDB aggregation pipelines
 - `ResultHydrator` for nested JSON reconstruction
 - `Validator` for schema-based field permission checking
 - `JsonQLEngine` with builder pattern for full pipeline
@@ -221,25 +222,24 @@ from jsonql.conditions import (
 | `postgres` | `$1, $2` | `"col"` | ✅ |
 | `mysql` | `?, ?` | `` `col` `` | ❌ |
 | `sqlite` | `?, ?` | `"col"` | ❌ |
+| `mssql` | `@p1, @p2` | `[col]` | ❌ |
+
+### MongoDB
+
+The Python SDK includes a `MongoTranspiler` and `MongoDriver` for MongoDB support.
 
 ## Error Hierarchy
 
-```
-JsonQLError
-├── JsonQLValidationError   (code: VALIDATION_ERROR)
-├── JsonQLTranspileError    (code: TRANSPILE_ERROR)
-└── JsonQLExecutionError    (code: EXECUTION_ERROR)
+```mermaid
+graph TD
+    E["JsonQLError"] --> V["JsonQLValidationError<br/>(VALIDATION_ERROR)"]
+    E --> T["JsonQLTranspileError<br/>(TRANSPILE_ERROR)"]
+    E --> X["JsonQLExecutionError<br/>(EXECUTION_ERROR)"]
 ```
 
 ## Compliance
 
-All 3 framework adapters × 3 databases = **9 containers** pass **65/65** compliance tests.
-
-| Adapter | PostgreSQL | MySQL | SQLite |
-|---------|:----------:|:-----:|:------:|
-| **Flask** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
-| **FastAPI** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
-| **Django** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
+The Python SDK has Flask, FastAPI, and Django adapters implemented but they are **not yet integrated** into the `jsonql-tests` E2E compliance matrix. Core logic is verified via pytest unit tests.
 
 ## Repo
 

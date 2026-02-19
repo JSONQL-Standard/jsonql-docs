@@ -15,10 +15,11 @@ The official Node.js/TypeScript SDK for JSONQL. Type-safe query building, SQL tr
 ## Features
 
 - Type-safe JSONQL parser, validator, and builder
-- SQL transpiler with dialect support (Postgres, MySQL, SQLite)
+- SQL transpiler with dialect support (Postgres, MySQL, SQLite, MSSQL)
+- MongoDB transpiler for aggregation pipelines
 - Result hydrator for nested join reconstruction
 - Framework adapters for **Express**, **Fastify**, and **NestJS**
-- Database drivers for PostgreSQL, MySQL, SQLite
+- Database drivers for PostgreSQL, MySQL, SQLite, MSSQL, and MongoDB
 - Schema introspection and manager
 - Mutation support with `RETURNING`
 - Fluent `JSONQLQueryBuilder` and `JSONQLMutationBuilder`
@@ -125,6 +126,8 @@ async function getUsers(jsonqlQuery) {
 | **PostgreSQL** | `drivers/postgres.ts` | `pg` |
 | **MySQL** | `drivers/mysql.ts` | `mysql2` |
 | **SQLite** | `drivers/sqlite.ts` | `sqlite3` / `sqlite` |
+| **MSSQL** | `drivers/mssql.ts` | `mssql` |
+| **MongoDB** | `drivers/mongodb.ts` | `mongodb` |
 
 ## Framework Adapters
 

@@ -1,9 +1,9 @@
 ---
 title: Java SDK
-description: Integrate JSONQL into JVM stacks with Spring Boot or Jakarta EE.
+description: Integrate JSONQL into JVM applications.
 ---
 
-The official Java SDK for JSONQL. A unified engine for transpiling and executing JSONQL queries, with first-class support for Spring Boot and Jakarta EE.
+The official Java SDK for JSONQL. A unified engine for transpiling and executing JSONQL queries, with lifecycle hooks and a builder API.
 
 | | |
 |---|---|
@@ -23,7 +23,8 @@ The official Java SDK for JSONQL. A unified engine for transpiling and executing
 - `JsonQLLifecycle` hooks — `beforeTranspile`, `beforeExecute`, `afterExecute`
 - `QueryBuilder` and `MutationBuilder` for programmatic query construction
 - `ResultHydrator` for nested JSON reconstruction
-- Built-in dialects: Postgres, MySQL, SQLite
+- Built-in dialects: Postgres, MySQL, SQLite, MSSQL, Generic
+- `MongoTranspiler` for MongoDB aggregation pipeline generation
 
 ## Installation
 
@@ -97,54 +98,20 @@ engine.execute(conn, "users", query, new JsonQLLifecycle() {
 
 ## Framework Integration
 
-### Spring Boot
+The Java SDK currently provides a **core engine** without framework adapters. You can integrate it into any Java web framework by calling the engine directly:
 
 ```java
-@Configuration
-public class JsonqlConfig {
-    @Bean
-    public JsonQLEngine engine(JSONQLSchema schema) {
-        return JsonQLEngine.builder().postgres().schema(schema).build();
-    }
-}
-
-@RestController
-public class QueryController {
-    @Autowired JsonQLEngine engine;
-    @Autowired JdbcTemplate jdbc;
-
-    @RequestMapping("/{table}")
-    public ResponseEntity<Object> handle(HttpMethod method,
-            @PathVariable String table,
-            @RequestBody(required = false) Map<String, Object> body,
-            @RequestParam(required = false) Map<String, String> params) {
-        var req = JsonQLRequestNormalizer.normalize(
-            method.name(), table, body, params
-        );
-        try (var conn = jdbc.getDataSource().getConnection()) {
-            var result = engine.executeRequest(conn, req);
-            return ResponseEntity.ok(result.toResponseBody());
-        }
-    }
+// In any HTTP handler (Spring Boot, Javalin, Vert.x, etc.)
+var request = JsonQLRequestNormalizer.normalize(
+    httpMethod, tableName, requestBody, queryParams
+);
+try (var conn = dataSource.getConnection()) {
+    JsonQLResult result = engine.executeRequest(conn, request);
+    return result.toResponseBody();
 }
 ```
 
-### Jakarta EE / JAX-RS
-
-```java
-@Path("/{table}")
-public Response handle(@PathParam("table") String table,
-        Map<String, Object> body, @Context UriInfo uriInfo) {
-    var params = flattenQueryParams(uriInfo);
-    var req = JsonQLRequestNormalizer.normalize(
-        "POST", table, body, params
-    );
-    try (var conn = dataSource.getConnection()) {
-        var result = engine.executeRequest(conn, req);
-        return Response.ok(result.toResponseBody()).build();
-    }
-}
-```
+Framework-specific adapters (Spring Boot, Jakarta EE, etc.) are planned for future releases.
 
 ## Core API
 
@@ -167,15 +134,12 @@ public Response handle(@PathParam("table") String table,
 | **PostgreSQL** | `PostgresDialect` | `$1, $2` | `"col"` |
 | **MySQL** | `MySQLDialect` | `?, ?` | `` `col` `` |
 | **SQLite** | `SQLiteDialect` | `?, ?` | `"col"` |
+| **MSSQL** | `MSSQLDialect` | `@p1, @p2` | `[col]` |
+| **Generic** | `GenericDialect` | `?, ?` | `"col"` |
 
 ## Compliance
 
-2 framework adapters × 3 databases = **6 containers** pass **65/65** compliance tests.
-
-| Adapter | PostgreSQL | MySQL | SQLite |
-|---------|:----------:|:-----:|:------:|
-| **Spring Boot** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
-| **Jakarta EE** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
+The Java SDK does not yet have framework adapters, so it is not included in the `jsonql-tests` E2E compliance matrix. Core logic is verified via unit tests (JUnit 5 + H2 in-memory database).
 
 ## Repo
 
