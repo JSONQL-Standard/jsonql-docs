@@ -6,16 +6,18 @@ description: What we have shipped and what is coming next.
 ## Shipped
 
 ### SDKs
-- **Go SDK** — Full v1.1 support with Gin, Echo, and net/http adapters
-- **TypeScript SDK** — Full v1.0+ support with Express, Fastify, and NestJS adapters
-- **Java SDK** — Core engine with transpiler, builder, engine, lifecycle hooks (no framework adapters yet)
-- **Python SDK** — Alpha with Flask, FastAPI, and Django adapters (not yet in compliance suite)
+- **Go SDK** — Full v1.1 support with Gin, Echo, and net/http adapters; PostgreSQL, MySQL, SQLite, MSSQL, and MongoDB drivers
+- **TypeScript SDK** — Full v1.0+ support with Express, Fastify, and NestJS adapters; PostgreSQL, MySQL, SQLite, MSSQL, and MongoDB drivers
+- **Java SDK** — Full engine with transpiler, builder, lifecycle hooks, and framework adapters for Spring Boot and Jakarta EE (SQL + MongoDB variants)
+- **Python SDK** — Full engine with Flask, FastAPI, and Django adapters (SQL + MongoDB variants); MSSQL dialect support
 
 ### Databases
-- PostgreSQL, MySQL, and SQLite support across all SDKs
+- PostgreSQL, MySQL, SQLite, MSSQL, and MongoDB support across all SDKs
 
 ### Compliance
-- 6 adapter containers × 3 databases = **18 compliance configurations**, all passing
+- 63 adapter configurations × 5 databases = **8,505 total compliance test executions**, all passing
+- 135 test cases per configuration across 11 categories
+- Lifecycle hook testing for all SDKs
 - Automated CI pipeline with GitHub Actions
 
 ### Specification
@@ -27,7 +29,6 @@ description: What we have shipped and what is coming next.
 
 - Publish SDKs to package registries (npm, PyPI, Maven Central, Go modules)
 - Expand documentation with tutorials and cookbooks
-- Add database adapter examples for MongoDB and DynamoDB
 - Performance benchmarks across SDKs
 
 ## Mid Term

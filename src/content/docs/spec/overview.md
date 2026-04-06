@@ -10,8 +10,8 @@ The JSONQL spec defines the query grammar, adapters, and compliance expectations
 **JSONQL** is a secure, lightweight, and polyglot JSON-based query language for filtering, sorting, pagination, and field selection.
 
 It is designed to be:
-- **Framework-agnostic** (Express, Fastify, NestJS, Gin, Echo, Flask, FastAPI, Django)
-- **Database-agnostic** (PostgreSQL, MySQL, SQLite, with MSSQL and MongoDB dialect support)
+- **Framework-agnostic** (Express, Fastify, NestJS, Gin, Echo, net/http, Spring Boot, Jakarta EE, Flask, FastAPI, Django)
+- **Database-agnostic** (PostgreSQL, MySQL, SQLite, MSSQL, and MongoDB)
 - **Secure by design** (parameterized, no eval, no regex execution)
 
 ### Versioning
@@ -154,7 +154,7 @@ The spec includes a [JSON Schema](https://github.com/JSONQL-Standard/jsonql-spec
 
 ## Compliance Testing
 
-The JSONQL ecosystem uses a comprehensive compliance test suite to verify that every SDK and adapter combination produces correct behavior. See the [Compliance Testing](/spec/compliance/) page for details.
+The JSONQL ecosystem uses a comprehensive compliance test suite to verify that every SDK and adapter combination produces correct behavior. See the [Compliance Testing](/spec/compliance/) page for the test matrix and configuration reference, and the [Integration Testing](/guides/integration-testing/) guide for details on building adapter servers and running tests.
 
 ## Repos
 

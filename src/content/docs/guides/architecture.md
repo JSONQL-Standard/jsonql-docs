@@ -32,12 +32,12 @@ graph TD
 | **Validator** | Schema-based permission checking (fields, relations, aggregates) | All SDKs |
 | **Transpiler** | JSONQL → SQL conversion with dialect awareness | All SDKs |
 | **Dialect** | Database-specific SQL syntax (placeholders, quoting, RETURNING) | All SDKs |
-| **Driver** | Database connection and query execution | Go, TS |
+| **Driver** | Database connection and query execution | All SDKs |
 | **Hydrator** | Flat rows → nested JSON reconstruction | All SDKs |
 | **Builder** | Fluent API for constructing JSONQL queries programmatically | All SDKs |
 | **Schema** | Table/field/relation definitions with permissions | All SDKs |
 | **Adapter** | Framework-specific HTTP integration (routing, request parsing) | All SDKs |
-| **Engine** | Unified pipeline orchestrator (parse → validate → transpile → execute → hydrate) | TS, Java, Python |
+| **Engine** | Unified pipeline orchestrator (parse → validate → transpile → execute → hydrate) | All SDKs |
 
 ## Ecosystem Map
 
@@ -47,11 +47,13 @@ graph TD
 
     SPEC --> GO["jsonql-go<br/>Gin · Echo · net/http"]
     SPEC --> TS["jsonql-ts<br/>Express · Fastify · NestJS"]
-    SPEC --> JAVA["jsonql-java<br/>(core only)"]
+    SPEC --> JAVA["jsonql-java<br/>Spring Boot · Jakarta EE"]
     SPEC --> PY["jsonql-py<br/>Flask · FastAPI · Django"]
 
-    GO -->|adapter containers| TESTS["jsonql-tests<br/>6 adapters × 3 databases = 18 configs<br/>PostgreSQL · MySQL · SQLite"]
+    GO -->|adapter containers| TESTS["jsonql-tests<br/>63 configurations × 135 tests<br/>PostgreSQL · MySQL · SQLite · MSSQL · MongoDB"]
     TS -->|adapter containers| TESTS
+    JAVA -->|adapter containers| TESTS
+    PY -->|adapter containers| TESTS
 ```
 
 ## Cross-SDK Feature Matrix
@@ -71,7 +73,7 @@ graph TD
 | SQLite dialect | ✅ | ✅ | ✅ | ✅ |
 | MSSQL dialect | ✅ | ✅ | ✅ | ✅ |
 | MongoDB transpiler | ✅ | ✅ | ✅ | ✅ |
-| Framework adapters | 3 | 3 | 0 | 3 |
+| Framework adapters | 3 | 3 | 2 | 3 |
 
 ## Security Model
 

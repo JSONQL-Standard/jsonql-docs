@@ -10,7 +10,7 @@ JSONQL is designed to make JSON the first-class query language for APIs and data
 - **Schema-first** — define your data shape, relationships, and access permissions once.
 - **Query plans** — JSONQL queries are parsed, validated, and transpiled to parameterized SQL.
 - **Portable SDKs** — consistent developer experience across Go, TypeScript, Python, and Java.
-- **Compliance-tested** — every SDK × adapter × database combination is verified against the same 65-test suite.
+- **Compliance-tested** — every SDK × adapter × database combination is verified against the same 135-test suite.
 
 ## Typical Workflow
 
@@ -54,10 +54,10 @@ Pick your language and framework:
 |----------|-----------|
 | **Go** | Gin, Echo, net/http |
 | **TypeScript** | Express, Fastify, NestJS |
-| **Java** | — (planned) |
+| **Java** | Spring Boot, Jakarta EE |
 | **Python** | Flask, FastAPI, Django |
 
-All combinations work with PostgreSQL, MySQL, and SQLite.
+All combinations work with PostgreSQL, MySQL, SQLite, MSSQL, and MongoDB.
 
 ### 3. Wire Up the Adapter
 
@@ -118,4 +118,4 @@ cd jsonql-tests
 - Explore the [Query Language](/guides/query-language/) reference
 - Understand the [Architecture](/guides/architecture/) and pipeline
 - Pick your SDK: [Go](/sdk/go/) · [TypeScript](/sdk/typescript/) · [Python](/sdk/python/) · [Java](/sdk/java/)
-- Learn about [Compliance Testing](/spec/compliance/)
+- Learn about [Integration Testing](/guides/integration-testing/) and [Compliance Testing](/spec/compliance/)
