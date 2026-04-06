@@ -14,7 +14,7 @@ We welcome contributions across SDKs, adapters, tooling, and docs.
 | [jsonql-ts](https://github.com/JSONQL-Standard/jsonql-ts) | TypeScript/Node.js SDK | TypeScript |
 | [jsonql-java](https://github.com/JSONQL-Standard/jsonql-java) | Java SDK | Java |
 | [jsonql-py](https://github.com/JSONQL-Standard/jsonql-py) | Python SDK | Python |
-| [jsonql-tests](https://github.com/JSONQL-Standard/jsonql-tests) | Compliance test suite (18 configurations) | Python, Docker |
+| [jsonql-tests](https://github.com/JSONQL-Standard/jsonql-tests) | Compliance test suite (63 configurations) | Python, Docker |
 | [jsonql-docs](https://github.com/JSONQL-Standard/jsonql-docs) | This documentation site | Astro, MDX |
 
 ## Ways to Help
@@ -58,7 +58,31 @@ cd jsonql-tests
 ./run_tests.sh --target your-adapter
 ```
 
-All 65 tests must pass before merging.
+All 135 tests must pass before merging.
+
+For details on writing adapter servers, configuring databases, and understanding the test case format, see the [Integration Testing](/guides/integration-testing/) guide.
+
+### Writing Test Cases
+
+Test cases live in `jsonql-tests/tests/unified/` organized by category. Each test is a JSON object specifying a request and expected response:
+
+```json
+{
+  "id": "where-eq-001",
+  "description": "WHERE eq operator - exact match",
+  "request": {
+    "method": "POST",
+    "path": "/users",
+    "body": { "fields": ["id", "name"], "where": { "name": { "eq": "Alice" } } }
+  },
+  "expected": {
+    "status": 200,
+    "body": { "data": [{ "id": 1, "name": "Alice" }] }
+  }
+}
+```
+
+Add new cases to the appropriate `cases/*.json` file in the relevant suite directory. See the [Compliance Testing](/spec/compliance/) page for the full test case format and configuration reference.
 
 ### Documentation
 

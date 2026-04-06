@@ -10,56 +10,71 @@ Every JSONQL SDK and adapter is tested against the same compliance suite to guar
 | Metric | Value |
 |--------|-------|
 | **SDKs** | 4 (Go, TypeScript, Java, Python) |
-| **Frameworks** | 9 implemented (Gin, Echo, net/http, Express, Fastify, NestJS, Flask, FastAPI, Django); 6 compliance-tested |
-| **Databases** | 3 (PostgreSQL, MySQL, SQLite) |
-| **Total containers** | 18 (6 adapters × 3 databases) |
-| **Tests per container** | 65 |
-| **Total test executions** | 1,170 |
+| **Frameworks** | 11 (Gin, Echo, net/http, Express, Fastify, NestJS, Spring Boot, Jakarta EE, Flask, FastAPI, Django) |
+| **Databases** | 5 (PostgreSQL, MySQL, SQLite, MSSQL, MongoDB) |
+| **Total configurations** | 63 (15 TS + 18 Go + 12 Java + 18 Python) |
+| **Tests per configuration** | 135 |
+| **Total test executions** | 8,505 |
 
 ## Test Matrix
 
 Every SDK is tested against every combination of its supported frameworks and databases:
 
-### Go SDK (9 containers)
+### Go SDK (18 configurations)
 
-| Adapter | PostgreSQL | MySQL | SQLite |
-|---------|:----------:|:-----:|:------:|
-| **Gin** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
-| **Echo** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
-| **net/http** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
+| Adapter | PostgreSQL | MySQL | SQLite | MSSQL | MongoDB |
+|---------|:----------:|:-----:|:------:|:-----:|:-------:|
+| **Gin** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **Echo** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **net/http** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
 
-### TypeScript SDK (9 containers)
+*+ 3 lifecycle configurations (Gin, Echo, net/http × PostgreSQL)*
 
-| Adapter | PostgreSQL | MySQL | SQLite |
-|---------|:----------:|:-----:|:------:|
-| **Express** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
-| **Fastify** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
-| **NestJS** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
+### TypeScript SDK (15 configurations)
 
-### Java SDK
+| Adapter | PostgreSQL | MySQL | SQLite | MSSQL |
+|---------|:----------:|:-----:|:------:|:-----:|
+| **Express** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **Fastify** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **NestJS** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
 
-The Java SDK provides core engine functionality (transpiler, builder, engine, lifecycle hooks) but does not yet have framework adapters. Compliance testing will be added when adapters are available.
+*+ 3 lifecycle configurations (Express, Fastify, NestJS × PostgreSQL)*
 
-### Python SDK
+### Java SDK (12 configurations)
 
-The Python SDK has Flask, FastAPI, and Django adapters implemented but they are not yet integrated into the `jsonql-tests` compliance suite.
+| Adapter | PostgreSQL | MySQL | SQLite | MSSQL | MongoDB |
+|---------|:----------:|:-----:|:------:|:-----:|:-------:|
+| **Spring Boot** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **Jakarta EE** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+
+*+ 2 lifecycle configurations (Spring Boot, Jakarta EE × PostgreSQL)*
+
+### Python SDK (18 configurations)
+
+| Adapter | PostgreSQL | MySQL | SQLite | MSSQL | MongoDB |
+|---------|:----------:|:-----:|:------:|:-----:|:-------:|
+| **Flask** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **FastAPI** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **Django** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+
+*+ 3 lifecycle configurations (Flask, FastAPI, Django × PostgreSQL)*
 
 ## Test Categories
 
-The 65 compliance tests are organized into 11 categories:
+The 135 compliance tests are organized into 11 categories:
 
 | Category | Tests | Validates |
 |----------|:-----:|-----------|
-| **Basic** | 8 | Simple queries, field selection, health endpoints |
-| **Parsing** | 4 | Query parameter parsing, body parsing, edge cases |
-| **Validation** | 5 | Schema validation, field permissions, error responses |
-| **Features v1.1** | 6 | Aggregation, groupBy, distinct |
-| **Advanced** | 2 | Complex queries, nested conditions |
-| **Errors** | 2 | Error handling, invalid query responses |
-| **Execution** | 3 | Query execution, mutation handling |
+| **Basic** | 45 | Simple queries, field selection, health endpoints |
+| **Execution** | 20 | Query execution, mutation handling |
+| **Misc** | 19 | Edge cases, operator coverage, string filters |
 | **Lifecycle** | 11 | Hooks, filters, sorting, pagination, relationships |
-| **Misc** | 14 | Edge cases, operator coverage, string filters |
+| **Advanced** | 8 | Complex queries, nested conditions |
 | **Parser Options** | 8 | Security limits, max depth, max limit |
+| **Errors** | 7 | Error handling, invalid query responses |
+| **Features v1.1** | 6 | Aggregation, groupBy, distinct |
+| **Validation** | 5 | Schema validation, field permissions, error responses |
+| **Parsing** | 4 | Query parameter parsing, body parsing, edge cases |
 | **Scenarios** | 2 | End-to-end real-world usage patterns |
 
 ## How It Works
@@ -68,98 +83,209 @@ The 65 compliance tests are organized into 11 categories:
 
 ```mermaid
 graph TD
-    Runner["Test Runner<br/>(pytest + ecosystem_runner)"]
-    Provision["1. Provision DB<br/>DDL + seed data per test"]
-    Request["2. HTTP Request<br/>POST to adapter container"]
-    Validate["3. Validate Response<br/>Status, headers, JSON body"]
+    Runner["pytest runner"]
+    Provision["1. Provision DB<br/>DDL + seed data"]
+    Request["2. HTTP Request<br/>POST to adapter server"]
+    Assert["3. Assert<br/>Status + body subset match"]
 
     Runner --> Provision
     Provision --> Request
-    Request --> Validate
+    Request --> Assert
 ```
 
-Each test case is a JSON fixture that defines:
-- **Setup**: DDL statements and seed data to provision before the test
-- **Request**: HTTP method, path, headers, and body
-- **Expected**: Status code, response body (deep comparison), and optional header checks
+A single parametrized pytest function (`test_ecosystem_compliance`) exercises every test case:
 
-### Test Fixtures
+1. **Discover** — Walk `tests/unified/` directories, load `config.json` + `cases/*.json`
+2. **Provision** — Drop tables, apply DDL, seed data per database type
+3. **Request** — Build HTTP request from test case definition, inject `X-JSONQL-Test-Path` header
+4. **Assert** — Verify status code (exact match) and response body (recursive subset match)
 
-Test fixtures live in `jsonql-tests/tests/unified/` and are organized by category:
+The **subset assertion** model means extra keys in the actual response are tolerated — only missing keys, type mismatches, and value differences fail. This allows servers to include engine-specific metadata without breaking tests.
+
+### Test Case Format
+
+Each test case is a JSON object stored in `cases/*.json` files:
+
+```json
+{
+  "id": "where-eq-001",
+  "description": "WHERE eq operator - exact match",
+  "request": {
+    "method": "POST",
+    "path": "/users",
+    "headers": { "X-Test-Role": "user" },
+    "body": {
+      "fields": ["id", "name"],
+      "where": { "name": { "eq": "Alice" } }
+    },
+    "query": "id=1"
+  },
+  "expected": {
+    "status": 200,
+    "body": {
+      "data": [{ "id": 1, "name": "Alice" }]
+    }
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique test identifier (used in pytest parametrization) |
+| `description` | string | Human-readable purpose |
+| `request.method` | string | HTTP method (`GET`, `POST`, `PATCH`, `PUT`, `DELETE`) |
+| `request.path` | string | URL path (e.g., `/users`) |
+| `request.headers` | object | Additional headers (merged with `X-JSONQL-Test-Path`) |
+| `request.body` | object | JSON body (JSONQL query or mutation data) |
+| `request.query` | string or object | Query string parameters |
+| `expected.status` | integer | Expected HTTP status code (default `200`) |
+| `expected.body` | object | Expected response body (subset match) |
+
+### Suite Configuration
+
+Each test suite directory requires a `config.json`:
+
+```json
+{
+  "scope": "lifecycle",
+  "db_types": ["postgres"],
+  "ddl": {
+    "postgres": "fixtures/ddl/postgres.sql",
+    "mysql": "fixtures/ddl/mysql.sql",
+    "sqlite": "fixtures/ddl/sqlite.sql",
+    "mssql": "fixtures/ddl/mssql.sql",
+    "mongodb": "fixtures/ddl/mongo_seed.js"
+  },
+  "data": "fixtures/data.json"
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `scope` | Optional — `"lifecycle"` restricts to lifecycle servers only |
+| `db_types` | Optional — restrict to specific database types |
+| `ddl` | DDL file paths — object (per-DB) or string (shared) |
+| `data` | Path to seed data JSON file |
+
+### Test Suite Structure
 
 ```
 tests/unified/
-├── basic/
-│   ├── cases/
-│   │   ├── basic.json
-│   │   └── field-selection.json
-│   └── fixtures/
-├── lifecycle/
-│   ├── cases/
-│   │   ├── filtering.json
-│   │   ├── sorting.json
-│   │   └── ...
-│   └── fixtures/
-├── features-v1-1/
-│   ├── cases/
-│   │   └── aggregation.json
-│   └── fixtures/
-└── ...
+├── basic/          # Core CRUD, pagination, sort, where operators (45 tests)
+├── advanced/       # Includes, aggregation, grouping (8 tests)
+├── errors/         # Error responses, invalid queries (7 tests)
+├── execution/      # SQL execution behavior (20 tests)
+├── features-v1-1/  # v1.1 spec: aggregation, groupBy, distinct (6 tests)
+├── lifecycle/      # Mutation hooks, RLS, response shaping (11 tests)
+├── misc/           # Edge cases, operator coverage (19 tests)
+├── parser-options/ # MaxLimit, AllowedFields, AllowedIncludes (8 tests)
+├── parsing/        # Query parsing variations (4 tests)
+├── scenarios/      # End-to-end real-world patterns (2 tests)
+└── validation/     # Schema validation, field permissions (5 tests)
 ```
+
+Each suite directory contains:
+- `config.json` — required suite configuration
+- `cases/*.json` — test case files (or `tests.json` for flat suites)
+- `fixtures/` — optional suite-specific DDL and seed data
+- `README.md` — optional documentation
 
 ### Running Tests
 
-#### Full Suite (Sequential)
+#### Full Suite
 
 ```bash
 cd jsonql-tests
-./run_tests.sh
+./run_tests.sh              # All 63 configurations
 ```
 
-#### Filtered by SDK
+#### By Language
 
 ```bash
-./run_tests.sh --target go      # All Go adapters
-./run_tests.sh --target ts      # All TypeScript adapters
+./run_tests.sh ts           # 15 TypeScript configurations
+./run_tests.sh go           # 18 Go configurations
+./run_tests.sh java         # 12 Java configurations
+./run_tests.sh py           # 18 Python configurations
+./run_tests.sh ts go        # TypeScript + Go
 ```
 
-#### Filtered by Framework
+#### Filtered
 
 ```bash
-./run_tests.sh --target gin     # Go Gin × all DBs
-./run_tests.sh --target express # TS Express × all DBs
+./run_tests.sh --filter gin     # Only services matching "gin"
+./run_tests.sh --filter express # Only services matching "express"
+./run_tests.sh --filter mssql   # Only MSSQL variants
 ```
 
-#### Filtered by Database
+#### Direct pytest
+
+For running tests against a single adapter server already running:
 
 ```bash
-./run_tests.sh --target pg      # All adapters × PostgreSQL
-./run_tests.sh --target mysql   # All adapters × MySQL
-./run_tests.sh --target sqlite  # All adapters × SQLite
+pytest tests/test_compliance.py \
+  --target http://localhost:8080 \
+  --db-type postgres \
+  --db-dsn "postgresql://jsonql:password@localhost:5432/jsonql_test" \
+  -q --tb=short
 ```
 
-#### Docker Compose
+#### Lifecycle Only
 
 ```bash
-docker compose up --build runner
+pytest tests/test_compliance.py \
+  --target http://localhost:8089 \
+  --db-type postgres \
+  --db-dsn "postgresql://jsonql:password@localhost:5432/jsonql_test" \
+  --test-path tests/unified/lifecycle
 ```
+
+### CLI Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--target` | `http://localhost:8080` | Base URL of the adapter server |
+| `--db-type` | `postgres` | Database backend: `postgres`, `mysql`, `sqlite`, `mssql`, `mongodb` |
+| `--db-dsn` | — | Database connection string (URI format) |
+| `--sqlite-file` | — | Path to SQLite database file |
+| `--mongo-dsn` | — | MongoDB connection string (fallback to `--db-dsn`) |
+| `--mongo-db` | `jsonql_test` | MongoDB database name |
+| `--mssql-host` | `localhost` | MSSQL hostname |
+| `--mssql-user` | `sa` | MSSQL username |
+| `--mssql-pass` | `JsonQL@123` | MSSQL password |
+| `--mssql-db` | `jsonql_test` | MSSQL database name |
+| `--mssql-port` | `1433` | MSSQL port |
+| `--test-path` | `tests/unified` | Path to test suites root directory |
+
+You can also use standard pytest options like `-k "where-eq"` to filter by test ID.
 
 ## CI Pipeline
 
-Compliance tests run automatically on every push via GitHub Actions:
+Four parallel GitHub Actions jobs with a summary step:
 
-- **ci.yml** — Sequential test execution (`run_tests.sh`) on every push
-- **nightly-matrix.yml** — Parallel matrix strategy testing each adapter independently
+| Job | Timeout | Setup |
+|-----|---------|-------|
+| **test-ts** | 20 min | Node 18 + Python 3.12, runs `./run_tests.sh ts` |
+| **test-go** | 20 min | Go 1.24, runs `./run_tests.sh go` |
+| **test-java** | 25 min | Java 21 (Temurin), runs `./run_tests.sh java` |
+| **test-py** | 20 min | Python 3.12, runs `./run_tests.sh py` |
+| **summary** | — | Downloads all artifacts, generates results table |
+
+Each job uploads test results to `results/` as artifacts (30-day retention). The `run_tests.sh` script:
+
+1. Starts databases via Docker Compose
+2. Waits for health checks (up to 60s per database)
+3. Pre-provisions MSSQL (requires explicit database creation unlike PG/MySQL)
+4. Iterates over adapter configs: start container → poll `/health` → run pytest → stop container
+5. Reports PASSED/FAILED/SKIPPED summary
 
 ## Adding a New Adapter
 
-To add compliance testing for a new SDK or framework adapter:
+See the [Integration Testing](/guides/integration-testing/) guide for details on:
 
-1. Create a new adapter directory in `jsonql-tests/adapters/`
-2. Implement the standard JSONQL HTTP contract (POST `/{table}`, GET `/{table}`, etc.)
-3. Add a Dockerfile and docker-compose service
-4. Add the adapter to `run_tests.sh` and the CI matrix
-5. Run the compliance suite and verify 65/65 passing
+- Implementing the adapter server HTTP contract
+- Configuring environment variables and schema resolution
+- Adding Docker Compose services and port allocation
+- Registering in `run_tests.sh`
 
 ## Repo
 

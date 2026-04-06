@@ -45,6 +45,7 @@ export default defineConfig({
                 items: [
                     { label: 'Architecture', slug: 'guides/architecture' },
                     { label: 'Query Language', slug: 'guides/query-language' },
+                    { label: 'Integration Testing', slug: 'guides/integration-testing' },
                 ],
             },
             {
