@@ -20,12 +20,12 @@ JSONQL queries are JSON objects sent to the server via POST body or `?q=` query 
 
 | Key | Type | Description |
 |-----|------|-------------|
-| `version` | `"1.0"` or `"1.1"` | Spec version (required in v1.0) |
+| `version` | `"1.0"` or `"1.1"` | Spec version. Defaults to latest if omitted. |
 | `fields` | `string[]` | Columns to return. Omit for all columns. |
 | `where` | `object` | Filter conditions |
 | `sort` | `string` or `string[]` | Prefix `-` for descending |
 | `limit` | `integer` | Maximum rows to return |
-| `skip` | `integer` | Number of rows to skip (offset) |
+| `skip` | `integer` | Number of rows to skip (offset). Alias: `offset`. |
 | `include` | `string[]` or `object` | Eager-load related resources |
 
 ## Filters
@@ -45,6 +45,35 @@ JSONQL queries are JSON objects sent to the server via POST body or `?q=` query 
 All comparison operators: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`.
 
 Multiple conditions at the same level are combined with implicit AND.
+
+### Implicit Equality
+
+You can use a bare value as shorthand for `eq`:
+
+```json
+{
+  "where": { "id": 1 }
+}
+```
+
+This is equivalent to `{ "id": { "eq": 1 } }`.
+
+### Null Filtering
+
+Use `eq` and `ne` with `null` to filter for NULL/NOT NULL:
+
+```json
+{
+  "where": {
+    "deleted_at": { "eq": null }
+  }
+}
+```
+
+| Pattern | SQL |
+|---------|-----|
+| `{"eq": null}` | `IS NULL` |
+| `{"ne": null}` | `IS NOT NULL` |
 
 ### Set Operators
 
@@ -91,6 +120,16 @@ Use `and`, `or`, and `not` to compose complex filters:
 }
 ```
 
+The `not` operator negates a condition:
+
+```json
+{
+  "where": {
+    "not": { "status": { "eq": "active" } }
+  }
+}
+```
+
 ### Field-to-Field Comparison
 
 Compare one field against another using the `field` wrapper:
@@ -131,6 +170,32 @@ Single-field shorthand:
 ```
 
 SDKs enforce a configurable `maxLimit` (default 1000) to prevent unbounded queries.
+
+## Query Delivery
+
+JSONQL queries can be sent in two ways:
+
+### POST Body (Primary)
+
+```bash
+curl -X POST http://localhost:8080/users \
+  -H "Content-Type: application/json" \
+  -d '{"fields": ["id", "name"], "where": {"status": {"eq": "active"}}}'
+```
+
+### GET with Query Parameter
+
+URL-encode the JSON and pass it as the `q` parameter:
+
+```bash
+curl "http://localhost:8080/users?q=%7B%22fields%22%3A%5B%22id%22%2C%22name%22%5D%7D"
+```
+
+Equivalent to:
+
+```
+GET /users?q={"fields":["id","name"]}
+```
 
 ## Relationships (Include)
 
@@ -247,6 +312,19 @@ JSONQL also supports data mutations through the same JSON interface:
 ```
 
 The HTTP method determines the operation type: `POST` for create, `PATCH`/`PUT` for update, `DELETE` for delete.
+
+## Parser Options
+
+SDKs support server-side security limits to control what clients can query:
+
+| Option | Description |
+|--------|-------------|
+| `maxLimit` | Maximum allowed `limit` value (default: 1000) |
+| `maxNestingDepth` | Maximum depth for nested `where` conditions |
+| `allowedFields` | Whitelist of fields clients can select |
+| `allowedIncludes` | Whitelist of relations clients can include |
+
+These are configured server-side per adapter, not in the query itself. See the [Architecture](/guides/architecture/) page for security details.
 
 ## Full Reference
 
