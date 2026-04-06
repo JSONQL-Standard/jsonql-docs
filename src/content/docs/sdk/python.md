@@ -3,7 +3,7 @@ title: Python SDK
 description: Build JSONQL-powered APIs in Python with Flask, FastAPI, or Django.
 ---
 
-The official Python SDK for JSONQL. Pythonic query building, SQL transpilation, and framework adapters for Flask, FastAPI, and Django.
+The official Python SDK for JSONQL. Pythonic query building, SQL transpilation, and framework adapters for Flask, FastAPI, and Django — with both SQL and MongoDB variants.
 
 | | |
 |---|---|
@@ -18,11 +18,12 @@ The official Python SDK for JSONQL. Pythonic query building, SQL transpilation, 
 - `Parser` for JSONQL query validation
 - `SQLTranspiler` with dialect support (Postgres, MySQL, SQLite, MSSQL)
 - `MongoTranspiler` for MongoDB aggregation pipelines
+- `MongoDriver` for MongoDB execution
 - `ResultHydrator` for nested JSON reconstruction
 - `Validator` for schema-based field permission checking
 - `JsonQLEngine` with builder pattern for full pipeline
 - Async executor support
-- Framework adapters for **Flask**, **FastAPI**, and **Django**
+- Framework adapters for **Flask**, **FastAPI**, and **Django** (SQL and MongoDB variants)
 - Type hints throughout (PEP 561)
 
 ## Installation
@@ -226,7 +227,7 @@ from jsonql.conditions import (
 
 ### MongoDB
 
-The Python SDK includes a `MongoTranspiler` and `MongoDriver` for MongoDB support.
+The Python SDK includes a `MongoTranspiler` and `MongoDriver` for MongoDB support, along with dedicated MongoDB adapter variants for each framework (`flask_mongo`, `fastapi_mongo`, `django_mongo`).
 
 ## Error Hierarchy
 
@@ -239,7 +240,15 @@ graph TD
 
 ## Compliance
 
-The Python SDK has Flask, FastAPI, and Django adapters implemented but they are **not yet integrated** into the `jsonql-tests` E2E compliance matrix. Core logic is verified via pytest unit tests.
+All 3 framework adapters × 5 databases + 3 lifecycle containers = **18 configurations** pass **135/135** compliance tests.
+
+| Adapter | PostgreSQL | MySQL | SQLite | MSSQL | MongoDB |
+|---------|:----------:|:-----:|:------:|:-----:|:-------:|
+| **Flask** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **FastAPI** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **Django** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+
+Lifecycle tests (Flask, FastAPI, Django × PostgreSQL) also pass.
 
 ## Repo
 

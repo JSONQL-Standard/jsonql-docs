@@ -1,9 +1,9 @@
 ---
 title: Java SDK
-description: Integrate JSONQL into JVM applications.
+description: Integrate JSONQL into JVM applications with Spring Boot or Jakarta EE.
 ---
 
-The official Java SDK for JSONQL. A unified engine for transpiling and executing JSONQL queries, with lifecycle hooks and a builder API.
+The official Java SDK for JSONQL. A unified engine for transpiling and executing JSONQL queries, with lifecycle hooks, a builder API, and framework adapters for Spring Boot and Jakarta EE.
 
 | | |
 |---|---|
@@ -25,6 +25,8 @@ The official Java SDK for JSONQL. A unified engine for transpiling and executing
 - `ResultHydrator` for nested JSON reconstruction
 - Built-in dialects: Postgres, MySQL, SQLite, MSSQL, Generic
 - `MongoTranspiler` for MongoDB aggregation pipeline generation
+- Framework adapters for **Spring Boot** and **Jakarta EE** (both SQL and MongoDB variants)
+- `CacheProvider` interface with built-in `InMemoryCacheProvider`
 
 ## Installation
 
@@ -98,20 +100,61 @@ engine.execute(conn, "users", query, new JsonQLLifecycle() {
 
 ## Framework Integration
 
-The Java SDK currently provides a **core engine** without framework adapters. You can integrate it into any Java web framework by calling the engine directly:
+The Java SDK provides framework adapters for Spring Boot and Jakarta EE:
+
+### Spring Boot
 
 ```java
-// In any HTTP handler (Spring Boot, Javalin, Vert.x, etc.)
-var request = JsonQLRequestNormalizer.normalize(
-    httpMethod, tableName, requestBody, queryParams
-);
-try (var conn = dataSource.getConnection()) {
-    JsonQLResult result = engine.executeRequest(conn, request);
-    return result.toResponseBody();
+@Configuration
+public class JsonqlConfig {
+    @Bean
+    public JsonQLEngine engine(JSONQLSchema schema) {
+        return JsonQLEngine.builder().postgres().schema(schema).build();
+    }
+}
+
+@RestController
+public class QueryController {
+    @Autowired JsonQLEngine engine;
+    @Autowired JdbcTemplate jdbc;
+
+    @RequestMapping("/{table}")
+    public ResponseEntity<Object> handle(HttpMethod method,
+            @PathVariable String table,
+            @RequestBody(required = false) Map<String, Object> body,
+            @RequestParam(required = false) Map<String, String> params) {
+        var req = JsonQLRequestNormalizer.normalize(method.name(), table, body, params);
+        try (var conn = jdbc.getDataSource().getConnection()) {
+            var result = engine.executeRequest(conn, req);
+            return ResponseEntity.ok(result.toResponseBody());
+        }
+    }
 }
 ```
 
-Framework-specific adapters (Spring Boot, Jakarta EE, etc.) are planned for future releases.
+### Jakarta EE / JAX-RS
+
+```java
+@Path("/{table}")
+public Response handle(@PathParam("table") String table,
+        Map<String, Object> body, @Context UriInfo uriInfo) {
+    var params = flattenQueryParams(uriInfo);
+    var req = JsonQLRequestNormalizer.normalize("POST", table, body, params);
+    try (var conn = dataSource.getConnection()) {
+        var result = engine.executeRequest(conn, req);
+        return Response.ok(result.toResponseBody()).build();
+    }
+}
+```
+
+## Framework Adapters
+
+| Framework | Class | Variants |
+|-----------|-------|----------|
+| **Spring Boot** | `SpringAdapter` | SQL databases |
+| **Spring Boot (MongoDB)** | `SpringMongoAdapter` | MongoDB |
+| **Jakarta EE** | `JakartaAdapter` | SQL databases |
+| **Jakarta EE (MongoDB)** | `JakartaMongoAdapter` | MongoDB |
 
 ## Core API
 
@@ -121,11 +164,15 @@ Framework-specific adapters (Spring Boot, Jakarta EE, etc.) are planned for futu
 | `JsonQLRequestNormalizer` | Converts HTTP requests to JSONQL query maps |
 | `JsonQLResult` | Wraps execution results with response helpers |
 | `SQLTranspiler` | Generates SQL from JSONQL |
+| `MongoTranspiler` | Generates MongoDB aggregation pipelines |
 | `JSONQLValidator` | Schema-based field and relation permission checking |
 | `JsonQLLifecycle` | Hook interface for the execution pipeline |
 | `QueryBuilder` | Fluent query construction |
 | `MutationBuilder` | Fluent mutation construction |
 | `ResultHydrator` | Nested JSON reconstruction |
+| `SpringAdapter` | Spring Boot HTTP adapter |
+| `JakartaAdapter` | Jakarta EE / JAX-RS HTTP adapter |
+| `CacheProvider` | Cache interface with in-memory implementation |
 
 ## Supported Databases
 
@@ -139,7 +186,14 @@ Framework-specific adapters (Spring Boot, Jakarta EE, etc.) are planned for futu
 
 ## Compliance
 
-The Java SDK does not yet have framework adapters, so it is not included in the `jsonql-tests` E2E compliance matrix. Core logic is verified via unit tests (JUnit 5 + H2 in-memory database).
+All 2 framework adapters × 5 databases + 2 lifecycle containers = **12 configurations** pass **135/135** compliance tests.
+
+| Adapter | PostgreSQL | MySQL | SQLite | MSSQL | MongoDB |
+|---------|:----------:|:-----:|:------:|:-----:|:-------:|
+| **Spring Boot** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **Jakarta EE** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+
+Lifecycle tests (Spring Boot + Jakarta EE × PostgreSQL) also pass.
 
 ## Repo
 

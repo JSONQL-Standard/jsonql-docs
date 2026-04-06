@@ -139,13 +139,15 @@ async function getUsers(jsonqlQuery) {
 
 ## Compliance
 
-All 3 framework adapters × 3 databases = **9 containers** pass **65/65** compliance tests.
+All 3 framework adapters × 4 SQL databases + 3 lifecycle containers = **15 configurations** pass **135/135** compliance tests.
 
-| Adapter | PostgreSQL | MySQL | SQLite |
-|---------|:----------:|:-----:|:------:|
-| **Express** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
-| **Fastify** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
-| **NestJS** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
+| Adapter | PostgreSQL | MySQL | SQLite | MSSQL |
+|---------|:----------:|:-----:|:------:|:-----:|
+| **Express** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **Fastify** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **NestJS** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+
+Lifecycle tests (Express, Fastify, NestJS × PostgreSQL) also pass.
 
 ## Repo
 

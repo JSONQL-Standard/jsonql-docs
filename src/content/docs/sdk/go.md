@@ -15,7 +15,7 @@ The official Go implementation of the JSONQL Standard. Full v1.1 support with a 
 ## Features
 
 - Full JSONQL v1.1: selects, includes (relationships), filtering, sorting, pagination, aggregation, groupBy, distinct
-- Database agnostic with pluggable `Driver` interface (PostgreSQL, SQLite, MSSQL, MongoDB drivers included)
+- Database agnostic with pluggable `Driver` interface (PostgreSQL, MySQL, SQLite, MSSQL, MongoDB drivers included)
 - Framework adapters for **Gin**, **Echo**, and **net/http**
 - Schema-based validation and SQL injection prevention (parameterized queries)
 - Fluent `QueryBuilder` and `MutationBuilder` APIs
@@ -103,9 +103,9 @@ The SDK follows a modular pipeline:
 | Database | Import Path | Driver |
 |----------|-------------|--------|
 | **PostgreSQL** | `github.com/jsonql-standard/jsonql-go/drivers/postgres` | `github.com/lib/pq` |
+| **MySQL** | `github.com/jsonql-standard/jsonql-go/drivers/mysql` | `github.com/go-sql-driver/mysql` |
 | **SQLite** | `github.com/jsonql-standard/jsonql-go/drivers/sqlite` | `modernc.org/sqlite` |
-| **MySQL** | Dialect supported (`MySQLDialect`) | Bring your own driver |
-| **MSSQL** | `github.com/jsonql-standard/jsonql-go/drivers/mssql` | `github.com/denisenkom/go-mssqldb` |
+| **MSSQL** | `github.com/jsonql-standard/jsonql-go/drivers/mssql` | `github.com/microsoft/go-mssqldb` |
 | **MongoDB** | `github.com/jsonql-standard/jsonql-go/drivers/mongodb` | `go.mongodb.org/mongo-driver` |
 
 ## Framework Adapters
@@ -115,6 +115,7 @@ The SDK follows a modular pipeline:
 | **Gin** | `github.com/jsonql-standard/jsonql-go/adapters/gin` |
 | **Echo** | `github.com/jsonql-standard/jsonql-go/adapters/echo` |
 | **net/http** | `github.com/jsonql-standard/jsonql-go/adapters/http` |
+| **MongoDB (native)** | `github.com/jsonql-standard/jsonql-go/adapters/mongo` |
 
 ## Query Builder
 
@@ -133,13 +134,15 @@ q := builder.New().
 
 ## Compliance
 
-All 3 framework adapters × 3 databases = **9 containers** pass **65/65** compliance tests.
+All 3 framework adapters × 5 databases + 3 lifecycle containers = **18 configurations** pass **135/135** compliance tests.
 
-| Adapter | PostgreSQL | MySQL | SQLite |
-|---------|:----------:|:-----:|:------:|
-| **Gin** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
-| **Echo** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
-| **net/http** | ✅ 65/65 | ✅ 65/65 | ✅ 65/65 |
+| Adapter | PostgreSQL | MySQL | SQLite | MSSQL | MongoDB |
+|---------|:----------:|:-----:|:------:|:-----:|:-------:|
+| **Gin** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **Echo** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **net/http** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+
+Lifecycle tests (Gin, Echo, net/http × PostgreSQL) also pass.
 
 ## Repo
 
