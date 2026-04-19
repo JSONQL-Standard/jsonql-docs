@@ -1,17 +1,13 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
 import starlight from '@astrojs/starlight';
 import starlightThemeGalaxy from 'starlight-theme-galaxy';
 
 import react from '@astrojs/react';
 
 // https://astro.build/config
-const isProd = process.env.NODE_ENV === 'production';
-
 export default defineConfig({
-    output: isProd ? 'server' : 'static',
-    adapter: isProd ? cloudflare() : undefined,
+    output: 'static',
     integrations: [starlight({
         plugins: [starlightThemeGalaxy()],
         title: 'JSONQL',
