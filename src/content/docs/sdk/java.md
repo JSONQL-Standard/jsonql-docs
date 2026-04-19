@@ -1,270 +1,303 @@
 ---
 title: Java SDK
-description: Integrate JSONQL into JVM applications with Spring Boot or Jakarta EE.
+description: Add a dynamic query API to any Java app with Spring Boot.
 ---
 
-The official Java SDK for JSONQL. A unified engine for transpiling and executing JSONQL queries, with lifecycle hooks, a builder API, and framework adapters for Spring Boot and Jakarta EE.
+The official Java SDK for JSONQL. Configure a connection, register the adapter, and your API instantly supports dynamic filtering, sorting, pagination, field selection, and relationships.
 
 | | |
 |---|---|
-| **Group ID** | `org.jsonql` |
-| **Artifact ID** | `jsonql-java` |
-| **Version** | 1.1.0 |
+| **Group** | `org.jsonql` |
+| **Artifact** | `jsonql-java` |
 | **Java** | 17+ |
 | **License** | MIT |
+| **Spec** | JSONQL v1.1 |
 
-## Features
+## Install
 
-- `JsonQLEngine` — unified transpile-and-execute pipeline with builder pattern
-- `JsonQLRequestNormalizer` — converts HTTP method + body + params → unified JSONQL query (auto-detects SELECT/INSERT/UPDATE/DELETE)
-- `JsonQLResult` — wraps results with `getData()`, `toResponseBody()`, `isMutation()`
-- `SQLTranspiler` — generates SQL from JSONQL with dialect support
-- `JSONQLValidator` — schema-based field and relation permission checking
-- `JsonQLLifecycle` hooks — `beforeTranspile`, `beforeExecute`, `afterExecute`
-- `QueryBuilder` and `MutationBuilder` for programmatic query construction
-- `ResultHydrator` for nested JSON reconstruction
-- Built-in dialects: Postgres, MySQL, SQLite, MSSQL, Generic
-- `MongoTranspiler` for MongoDB aggregation pipeline generation
-- Framework adapters for **Spring Boot** and **Jakarta EE** (both SQL and MongoDB variants)
-- `CacheProvider` interface with built-in `InMemoryCacheProvider`
-
-## Installation
+### Maven
 
 ```xml
 <dependency>
     <groupId>org.jsonql</groupId>
     <artifactId>jsonql-java</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
-## Quick Start
+### Gradle
 
-```java
-// 1. Create an engine
-JsonQLEngine engine = JsonQLEngine.builder()
-    .postgres()             // or .mysql(), .sqlite()
-    .schema(schema)         // optional: enables validation & relationships
-    .build();
-
-// 2. Normalize an HTTP request into a JSONQL query
-var request = JsonQLRequestNormalizer.normalize(
-    "POST", "users",
-    Map.of("fields", List.of("id", "name"),
-           "where", Map.of("status", "active")),
-    queryParams
-);
-
-// 3. Execute
-try (Connection conn = dataSource.getConnection()) {
-    JsonQLResult result = engine.executeRequest(conn, request);
-    result.getData();          // List<Map<String, Object>>
-    result.toResponseBody();   // {"data": [...]}
-    result.isMutation();       // false (this was a SELECT)
-}
+```kotlin
+implementation("org.jsonql:jsonql-java:1.1.0")
 ```
 
-## HTTP Request Normalization
-
-`JsonQLRequestNormalizer.normalize()` converts HTTP semantics into a unified JSONQL query map:
-
-| HTTP Method | Behavior |
-|-------------|----------|
-| **GET** | Always SELECT |
-| **POST** | Auto-detected: SELECT (if body has `fields`, `where`, etc.) or INSERT |
-| **PATCH / PUT** | UPDATE — non-keyword body keys → `patch` |
-| **DELETE** | DELETE — non-keyword body keys → `where` |
-
-Query params `?q={...}` or `?query={...}` are parsed and merged with the body.
-
-## Lifecycle Hooks
-
-```java
-engine.execute(conn, "users", query, new JsonQLLifecycle() {
-    @Override
-    public void beforeTranspile(Map<String, Object> query, String commandType) {
-        // Modify query, add RLS filters, validate permissions
-    }
-
-    @Override
-    public void beforeExecute(String sql, List<Object> params) {
-        // Log SQL, audit queries
-    }
-
-    @Override
-    public void afterExecute(List<Map<String, Object>> results) {
-        // Transform results, trigger side effects
-    }
-});
-```
-
-## Framework Integration
-
-The Java SDK provides framework adapters for Spring Boot and Jakarta EE:
+## Configure & Use
 
 ### Spring Boot
 
 ```java
-@Configuration
-public class JsonqlConfig {
-    @Bean
-    public JsonQLEngine engine(JSONQLSchema schema) {
-        return JsonQLEngine.builder().postgres().schema(schema).build();
-    }
-}
+import org.jsonql.adapter.AdapterOptions;
+import org.jsonql.adapter.spring.SpringAdapter;
+import org.springframework.web.bind.annotation.*;
+
+import javax.sql.DataSource;
 
 @RestController
-public class QueryController {
-    @Autowired JsonQLEngine engine;
-    @Autowired JdbcTemplate jdbc;
+@RequestMapping("/api")
+public class JsonQLController {
 
-    @RequestMapping("/{table}")
-    public ResponseEntity<Object> handle(HttpMethod method,
-            @PathVariable String table,
-            @RequestBody(required = false) Map<String, Object> body,
-            @RequestParam(required = false) Map<String, String> params) {
-        var req = JsonQLRequestNormalizer.normalize(method.name(), table, body, params);
-        try (var conn = jdbc.getDataSource().getConnection()) {
-            var result = engine.executeRequest(conn, req);
-            return ResponseEntity.ok(result.toResponseBody());
-        }
+    private final SpringAdapter adapter;
+
+    public JsonQLController(DataSource ds) {
+        AdapterOptions opts = new AdapterOptions()
+            .connectionSupplier(ds::getConnection);
+
+        this.adapter = new SpringAdapter(opts);
+    }
+
+    @PostMapping("/{table}")
+    public Object query(@PathVariable String table, @RequestBody String body) {
+        return adapter.handleQuery(table, body);
+    }
+
+    @PostMapping("/{table}/create")
+    public Object create(@PathVariable String table, @RequestBody String body) {
+        return adapter.handleCreate(table, body);
+    }
+
+    @PatchMapping("/{table}")
+    public Object update(@PathVariable String table, @RequestBody String body) {
+        return adapter.handleUpdate(table, body);
+    }
+
+    @DeleteMapping("/{table}")
+    public Object delete(@PathVariable String table, @RequestBody String body) {
+        return adapter.handleDelete(table, body);
     }
 }
 ```
 
-### Jakarta EE / JAX-RS
+**That's it.** Spring Boot auto-wires your `DataSource`. All JSONQL operations route through the adapter — no query-building needed, no custom SQL.
+
+### Jakarta Servlet (no Spring)
 
 ```java
-@Path("/{table}")
-public Response handle(@PathParam("table") String table,
-        Map<String, Object> body, @Context UriInfo uriInfo) {
-    var params = flattenQueryParams(uriInfo);
-    var req = JsonQLRequestNormalizer.normalize("POST", table, body, params);
-    try (var conn = dataSource.getConnection()) {
-        var result = engine.executeRequest(conn, req);
-        return Response.ok(result.toResponseBody()).build();
-    }
+import org.jsonql.adapter.AdapterOptions;
+import org.jsonql.adapter.servlet.JsonQLServlet;
+
+AdapterOptions opts = new AdapterOptions()
+    .connectionSupplier(() -> DriverManager.getConnection(url, user, pass));
+
+// Register servlet at /api/*
+servletContext.addServlet("jsonql", new JsonQLServlet(opts))
+    .addMapping("/api/*");
+```
+
+## What Your Clients Can Do
+
+Every query is a JSON POST to `/api/{table}`:
+
+```bash
+# Select specific fields, filter, sort, paginate
+curl -X POST http://localhost:8080/api/users -H 'Content-Type: application/json' -d '{
+  "fields": ["id", "name", "email"],
+  "where": { "status": { "eq": "active" } },
+  "sort": ["-created_at"],
+  "limit": 20
+}'
+# → { "data": [{ "id": 1, "name": "Alice", "email": "alice@co.com" }, ...] }
+```
+
+```bash
+# Complex filters
+curl -X POST http://localhost:8080/api/products -d '{
+  "where": {
+    "and": [
+      { "price": { "gte": 10, "lte": 100 } },
+      { "category": { "in": ["electronics", "books"] } }
+    ]
+  },
+  "sort": ["price"],
+  "limit": 50
+}'
+```
+
+```bash
+# Include related data
+curl -X POST http://localhost:8080/api/users -d '{
+  "fields": ["id", "name"],
+  "include": {
+    "posts": { "fields": ["title", "created_at"], "limit": 5 }
+  }
+}'
+```
+
+```bash
+# Aggregation & groupBy
+curl -X POST http://localhost:8080/api/orders -d '{
+  "aggregate": { "total": { "fn": "sum", "field": "amount" } },
+  "groupBy": ["status"]
+}'
+```
+
+CRUD mutations:
+
+```bash
+# Create
+curl -X POST http://localhost:8080/api/users/create \
+  -d '{ "data": { "name": "Bob", "email": "bob@co.com" } }'
+
+# Update
+curl -X PATCH http://localhost:8080/api/users \
+  -d '{ "patch": { "status": "inactive" }, "where": { "id": { "eq": 1 } } }'
+
+# Delete
+curl -X DELETE http://localhost:8080/api/users \
+  -d '{ "where": { "id": { "eq": 1 } } }'
+```
+
+## Adding Schema (Optional)
+
+Without schema, all columns are queryable. With schema, you control field exposure and enable relationships:
+
+```java
+import org.jsonql.schema.JsonQLSchema;
+
+JsonQLSchema schema = JsonQLSchema.builder()
+    .table("users", t -> t
+        .field("id", "number")
+        .field("name", "string")
+        .field("email", "string")
+        .relation("posts", r -> r.hasMany("posts", "user_id"))
+    )
+    .build();
+
+AdapterOptions opts = new AdapterOptions()
+    .connectionSupplier(ds::getConnection)
+    .schema(schema);
+```
+
+## Lifecycle Hooks
+
+Inject tenant isolation, audit logging, or authorization:
+
+```java
+AdapterOptions opts = new AdapterOptions()
+    .connectionSupplier(ds::getConnection)
+    .beforeQuery((query, table) -> {
+        // Inject tenant filter into every query
+        query.addWhere("tenant_id", "eq", tenantId);
+    })
+    .afterQuery((result, table) -> {
+        auditLog.record("query", table, result.getRowCount());
+    });
+```
+
+## Supported Databases
+
+| Database | Dialect | JDBC Driver |
+|----------|---------|-------------|
+| **PostgreSQL** | `postgres` | `org.postgresql:postgresql` |
+| **MySQL** | `mysql` | `com.mysql:mysql-connector-j` |
+| **SQLite** | `sqlite` | `org.xerial:sqlite-jdbc` |
+| **MSSQL** | `mssql` | `com.microsoft.sqlserver:mssql-jdbc` |
+| **MongoDB** | `mongodb` | `org.mongodb:mongodb-driver-sync` |
+
+Dialect is auto-detected from JDBC URL; explicit setting is optional:
+
+```java
+new AdapterOptions()
+    .connectionSupplier(ds::getConnection)
+    .dialect("postgres"); // Only needed if auto-detect fails
+```
+
+## Error Handling
+
+All errors extend `JsonQLException` with a `getErrorCode()` method:
+
+```mermaid
+graph TD
+    E["JsonQLException"] --> P["JsonQLParseException<br/>(PARSE_ERROR)"]
+    E --> V["JsonQLValidationException<br/>(VALIDATION_ERROR)"]
+    E --> T["JsonQLTranspileException<br/>(TRANSPILE_ERROR)"]
+    E --> X["JsonQLExecutionException<br/>(EXECUTION_ERROR)"]
+```
+
+```java
+try {
+    adapter.handleQuery(table, body);
+} catch (JsonQLException e) {
+    System.out.println(e.getErrorCode()); // "VALIDATION_ERROR"
 }
 ```
 
-## Framework Adapters
+Adapter error responses:
 
-| Framework | Class | Variants |
-|-----------|-------|----------|
-| **Spring Boot** | `SpringAdapter` | SQL databases |
-| **Spring Boot (MongoDB)** | `SpringMongoAdapter` | MongoDB |
-| **Jakarta EE** | `JakartaAdapter` | SQL databases |
-| **Jakarta EE (MongoDB)** | `JakartaMongoAdapter` | MongoDB |
+```json
+{ "error": "Field 'secret' is not allowed", "error_code": "VALIDATION_ERROR" }
+```
+
+## Advanced: Engine (Direct Use)
+
+For custom pipelines outside the Spring adapter:
+
+```java
+import org.jsonql.JsonQLFactory;
+import org.jsonql.JsonQLResult;
+
+JsonQLFactory factory = JsonQLFactory.builder()
+    .dialect("postgres")
+    .connection(ds.getConnection())
+    .schema(schema) // optional
+    .build();
+
+JsonQLResult result = factory.execute("users", queryJson);
+// result.getData()        → List<Map<String, Object>>
+// result.isMutation()     → boolean
+```
+
+## Advanced: Query Builder
+
+For server-side programmatic query construction:
+
+```java
+import org.jsonql.builder.QueryBuilder;
+
+String query = QueryBuilder.from("users")
+    .select("id", "name", "email")
+    .where("status", "eq", "active")
+    .orderBy("-created_at")
+    .limit(10)
+    .toJson();
+```
 
 ## Core API
 
 | Class | Purpose |
 |-------|---------|
-| `JsonQLEngine` | Transpiles and executes JSONQL queries |
-| `JsonQLRequestNormalizer` | Converts HTTP requests to JSONQL query maps |
-| `JsonQLResult` | Wraps execution results with response helpers |
-| `SQLTranspiler` | Generates SQL from JSONQL |
-| `MongoTranspiler` | Generates MongoDB aggregation pipelines |
-| `JSONQLValidator` | Schema-based field and relation permission checking |
-| `JsonQLLifecycle` | Hook interface for the execution pipeline |
-| `QueryBuilder` | Fluent query construction |
-| `MutationBuilder` | Fluent mutation construction |
-| `ResultHydrator` | Nested JSON reconstruction |
-| `SpringAdapter` | Spring Boot HTTP adapter |
-| `JakartaAdapter` | Jakarta EE / JAX-RS HTTP adapter |
-| `CacheProvider` | Cache interface with in-memory implementation |
-| `JsonQLException` | Base exception with `getCode()` and `getMessage()` |
-| `JsonQLValidationException` | Validation failures with `getErrors()` detail |
-| `JsonQLTranspileException` | SQL/Mongo transpilation errors |
-| `JsonQLExecutionException` | Database execution errors wrapping `SQLException` |
-| `JsonQLHookException` | Lifecycle hook errors with HTTP `status` |
-
-## Supported Databases
-
-| Database | Dialect Class | Placeholder | Quoting |
-|----------|---------------|-------------|---------|
-| **PostgreSQL** | `PostgresDialect` | `$1, $2` | `"col"` |
-| **MySQL** | `MySQLDialect` | `?, ?` | `` `col` `` |
-| **SQLite** | `SQLiteDialect` | `?, ?` | `"col"` |
-| **MSSQL** | `MSSQLDialect` | `@p1, @p2` | `[col]` |
-| **Generic** | `GenericDialect` | `?, ?` | `"col"` |
-
-## Error Handling
-
-All exceptions extend `JsonQLException` (a `RuntimeException`) and include a machine-readable `code`:
-
-```mermaid
-graph TD
-    E["JsonQLException<br/>(JSONQL_ERROR)"] --> V["JsonQLValidationException<br/>(VALIDATION_ERROR)"]
-    E --> T["JsonQLTranspileException<br/>(TRANSPILE_ERROR)"]
-    E --> X["JsonQLExecutionException<br/>(EXECUTION_ERROR)"]
-    E --> H["JsonQLHookException<br/>(JSONQL_ERROR)"]
-```
-
-```java
-try {
-    engine.executeRequest(conn, request);
-} catch (JsonQLValidationException e) {
-    e.getCode();   // "VALIDATION_ERROR"
-    e.getErrors(); // List<ValidationError>
-} catch (JsonQLException e) {
-    e.getCode();   // "JSONQL_ERROR" (base)
-}
-```
-
-Framework adapters include the `error_code` field in error responses:
-
-```json
-{
-  "error": "Field 'secret' is not allowed",
-  "error_code": "VALIDATION_ERROR"
-}
-```
+| `AdapterOptions` | Configure adapter: connection, schema, hooks, dialect |
+| `SpringAdapter` | Spring Boot request handler |
+| `JsonQLFactory` | Manual transpile-and-execute pipeline |
+| `JsonQLParser` | Parse & validate incoming JSON |
+| `SQLTranspiler` | Convert parsed query → SQL + params |
+| `Hydrator` | Convert flat rows → nested POJOs/maps |
+| `QueryBuilder` | Fluent query construction (advanced) |
 
 ## Compliance
 
-All 2 framework adapters × 5 databases + 2 lifecycle containers = **12 configurations** pass **135/135** compliance tests.
+135/135 tests passing across all configurations:
 
 | Adapter | PostgreSQL | MySQL | SQLite | MSSQL | MongoDB |
 |---------|:----------:|:-----:|:------:|:-----:|:-------:|
-| **Spring Boot** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
-| **Jakarta EE** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
-
-Lifecycle tests (Spring Boot + Jakarta EE × PostgreSQL) also pass.
+| **Spring** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Jakarta** | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ## Development
 
-### Build & Test
-
 ```bash
-mvn test              # Run all unit tests (JUnit 4 + H2)
-mvn package -DskipTests  # Build JAR without tests
+mvn test                # Run all tests (JUnit 4 + H2)
+mvn verify              # Full verification including integration tests
 ```
-
-### Formatting
-
-The Java SDK uses [Spotless](https://github.com/diffplug/spotless) with **google-java-format** (AOSP style). Formatting is enforced in CI — PRs will fail if code is not formatted.
-
-```bash
-mvn spotless:check    # Check formatting (CI runs this)
-mvn spotless:apply    # Auto-format all Java files
-```
-
-### Pre-commit Hook
-
-A pre-commit hook runs `mvn spotless:check` before each commit. To install it:
-
-```bash
-cp hooks/pre-commit .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
-```
-
-### CI Pipeline
-
-The GitHub Actions CI runs two jobs:
-
-1. **lint** — `mvn spotless:check` (format verification)
-2. **test** — `mvn test` on Java 17 and 21 (gated by lint)
 
 ## Repo
 

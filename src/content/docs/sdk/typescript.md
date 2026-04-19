@@ -1,9 +1,9 @@
 ---
 title: TypeScript SDK
-description: Build JSONQL-powered APIs in TypeScript with Express, Fastify, or NestJS.
+description: Add a dynamic query API to any Node.js app in minutes.
 ---
 
-The official Node.js/TypeScript SDK for JSONQL. Type-safe query building, SQL transpilation, and framework middleware out of the box.
+The official Node.js/TypeScript SDK for JSONQL. One line of configuration gives your API dynamic filtering, sorting, pagination, field selection, and relationships — no custom endpoints needed.
 
 | | |
 |---|---|
@@ -12,149 +12,193 @@ The official Node.js/TypeScript SDK for JSONQL. Type-safe query building, SQL tr
 | **License** | MIT |
 | **Runtime** | Node.js 18+ |
 
-## Features
-
-- Type-safe JSONQL parser, validator, and builder
-- SQL transpiler with dialect support (Postgres, MySQL, SQLite, MSSQL)
-- MongoDB transpiler for aggregation pipelines
-- Result hydrator for nested join reconstruction
-- Framework adapters for **Express**, **Fastify**, and **NestJS**
-- Database drivers for PostgreSQL, MySQL, SQLite, MSSQL, and MongoDB
-- Schema introspection and manager
-- Mutation support with `RETURNING`
-- Fluent `JSONQLQueryBuilder` and `JSONQLMutationBuilder`
-- CLI tool (`jsonql-gen-sql`) for SQL generation
-
-## Installation
+## Install
 
 ```bash
 npm install @jsonql-standard/jsonql-ts
 ```
 
-## Quick Start
+## Configure & Use
 
-### Parser
+Pick your framework — **one mount** gives you a complete JSONQL API:
 
-```typescript
-import { JSONQLParser } from '@jsonql-standard/jsonql-ts';
-
-const parser = new JSONQLParser();
-const query = parser.parse({
-  version: '1.0',
-  fields: ['id', 'name'],
-  where: { status: { eq: 'active' } }
-});
-```
-
-### Express Adapter
+### Express
 
 ```typescript
 import express from 'express';
 import { jsonqlExpress } from '@jsonql-standard/jsonql-ts';
+import { PostgresDriver } from '@jsonql-standard/jsonql-ts/drivers/postgres';
 
 const app = express();
-app.use('/api', jsonqlExpress());
+app.use(express.json());
 
-app.get('/api/users', (req, res) => {
-  const query = req.jsonql; // Typed JSONQLQuery
-  // ... execute query
-});
+const driver = new PostgresDriver('postgres://localhost/mydb');
+
+// One line of config — dynamic query API ready
+app.use('/api', jsonqlExpress({ driver }));
+
+app.listen(3000);
 ```
 
-### Fastify Adapter
+### Fastify
 
 ```typescript
 import Fastify from 'fastify';
 import { jsonqlFastify } from '@jsonql-standard/jsonql-ts';
+import { PostgresDriver } from '@jsonql-standard/jsonql-ts/drivers/postgres';
 
 const fastify = Fastify();
-fastify.register(jsonqlFastify);
+const driver = new PostgresDriver('postgres://localhost/mydb');
 
-fastify.get('/users', (req, reply) => {
-  const query = req.jsonql;
-  // ...
-});
+// Auto-registers /:table routes
+fastify.register(jsonqlFastify, { driver });
+
+fastify.listen({ port: 3000 });
 ```
 
-### NestJS Adapter
+### NestJS
 
 ```typescript
-import { Controller, All, Req, Res, Module } from '@nestjs/common';
-import { Request, Response } from 'express';
-import { JsonqlModule, JsonqlService } from '@jsonql-standard/jsonql-ts';
+import { Module } from '@nestjs/common';
+import { JsonqlModule } from '@jsonql-standard/jsonql-ts';
 
-// Register the module
 @Module({
-  imports: [JsonqlModule.forRoot({ /* AdapterOptions */ })],
+  imports: [
+    JsonqlModule.forRoot({
+      driver: new PostgresDriver('postgres://localhost/mydb'),
+    }),
+  ],
 })
 export class AppModule {}
-
-// Inject JsonqlService in a controller
-@Controller()
-export class AppController {
-  constructor(private readonly jsonql: JsonqlService) {}
-
-  @All(':resource')
-  async handle(@Req() req: Request, @Res() res: Response) {
-    return this.jsonql.handleRequest(req, req.path, res);
-  }
-}
 ```
 
-### SQL Transpilation & Execution
+**That's it.** No query controllers, no endpoint-per-filter, no route boilerplate. Your clients can now query any table dynamically.
+
+## What Your Clients Can Do
+
+Every query is a JSON POST to `/api/{table}`:
+
+```bash
+# Select specific fields, filter, sort, paginate
+curl -X POST http://localhost:3000/api/users -H 'Content-Type: application/json' -d '{
+  "fields": ["id", "name", "email"],
+  "where": { "status": { "eq": "active" } },
+  "sort": ["-created_at"],
+  "limit": 20
+}'
+# → { "data": [{ "id": 1, "name": "Alice", "email": "alice@co.com" }, ...] }
+```
+
+```bash
+# Complex filters with AND/OR
+curl -X POST http://localhost:3000/api/products -d '{
+  "where": {
+    "and": [
+      { "price": { "gte": 10, "lte": 100 } },
+      { "category": { "in": ["electronics", "books"] } }
+    ]
+  },
+  "sort": ["price"],
+  "limit": 50
+}'
+```
+
+```bash
+# Include related data — joins resolved automatically
+curl -X POST http://localhost:3000/api/users -d '{
+  "fields": ["id", "name"],
+  "include": {
+    "posts": { "fields": ["title", "created_at"], "limit": 5 }
+  }
+}'
+# → { "data": [{ "id": 1, "name": "Alice", "posts": [{ "title": "Hello", ... }] }] }
+```
+
+```bash
+# Aggregation & groupBy
+curl -X POST http://localhost:3000/api/orders -d '{
+  "aggregate": { "total": { "fn": "sum", "field": "amount" } },
+  "groupBy": ["status"]
+}'
+```
+
+CRUD mutations work too:
+
+```bash
+# Create (POST with "data")
+curl -X POST http://localhost:3000/api/users \
+  -d '{ "data": { "name": "Bob", "email": "bob@co.com" } }'
+
+# Update (PATCH)
+curl -X PATCH http://localhost:3000/api/users \
+  -d '{ "patch": { "status": "inactive" }, "where": { "id": { "eq": 1 } } }'
+
+# Delete
+curl -X DELETE http://localhost:3000/api/users \
+  -d '{ "where": { "id": { "eq": 1 } } }'
+```
+
+## Adding Schema (Optional)
+
+Without schema, all columns are queryable. With schema, you control which fields are exposed, hide sensitive columns, and enable relationship resolution:
 
 ```typescript
-import { SQLTranspiler, ResultHydrator } from '@jsonql-standard/jsonql-ts';
-import { Client } from 'pg';
-
-const transpiler = new SQLTranspiler('postgres');
-const hydrator = new ResultHydrator();
-const client = new Client();
-
-async function getUsers(jsonqlQuery) {
-  const { sql, parameters } = transpiler.transpile(jsonqlQuery, 'users');
-  const result = await client.query(sql, parameters);
-  return hydrator.hydrate(result.rows);
-}
+app.use('/api', jsonqlExpress({
+  driver,
+  schema: {
+    tables: {
+      users: {
+        fields: {
+          id:     { type: 'number' },
+          name:   { type: 'string' },
+          email:  { type: 'string' },
+          secret: { type: 'string', allowSelect: false }, // hidden from queries
+        },
+        relations: {
+          posts: { type: 'hasMany', table: 'posts', field: 'user_id' },
+        },
+      },
+      posts: {
+        fields: {
+          id:      { type: 'number' },
+          title:   { type: 'string' },
+          user_id: { type: 'number' },
+        },
+      },
+    },
+  },
+}));
 ```
 
-## Core API
+## Lifecycle Hooks
 
-| Export | Purpose |
-|--------|---------|
-| `JSONQLParser` | Parse & validate incoming JSON |
-| `JSONQLValidator` | Schema-based permission checking |
-| `JSONQLQueryBuilder` | Fluent query construction |
-| `JSONQLMutationBuilder` | Fluent mutation construction |
-| `SQLTranspiler` | Convert parsed query → SQL + params |
-| `ResultHydrator` | Flatten SQL joins → nested JSON |
-| `SchemaManager` | Load schemas from introspection + JSON files |
-| `JsonQLError` | Base error class with `code` and `message` |
-| `JsonQLValidationError` | Validation failures with `errors[]` detail |
-| `JsonQLTranspileError` | SQL/Mongo transpilation errors |
-| `JsonQLExecutionError` | Database execution errors with optional `cause` |
+Inject logic at any point in the pipeline — tenant isolation, audit logging, RLS:
+
+```typescript
+app.use('/api', jsonqlExpress({
+  driver,
+  hooks: {
+    beforeQuery: (query, table) => {
+      query.where = { ...query.where, tenant_id: { eq: currentTenantId } };
+    },
+    afterQuery: (results) => results,
+  },
+}));
+```
 
 ## Supported Databases
 
-| Database | Driver file | Underlying package |
-|----------|-------------|-------------------|
-| **PostgreSQL** | `drivers/postgres.ts` | `pg` |
-| **MySQL** | `drivers/mysql.ts` | `mysql2` |
-| **SQLite** | `drivers/sqlite.ts` | `sqlite3` / `sqlite` |
-| **MSSQL** | `drivers/mssql.ts` | `mssql` |
-| **MongoDB** | `drivers/mongodb.ts` | `mongodb` |
-
-## Framework Adapters
-
-| Framework | Export | Integration style |
-|-----------|--------|------------------|
-| **Express** | `jsonqlExpress()` | Middleware — sets `req.jsonql` |
-| **Fastify** | `jsonqlFastify` | Plugin — sets `req.jsonql` |
-| **NestJS** | `JsonqlModule` / `JsonqlService` | Module with injectable service |
+| Database | Driver import | Package |
+|----------|-------------|---------|
+| **PostgreSQL** | `drivers/postgres` | `pg` |
+| **MySQL** | `drivers/mysql` | `mysql2` |
+| **SQLite** | `drivers/sqlite` | `sqlite3` |
+| **MSSQL** | `drivers/mssql` | `mssql` |
+| **MongoDB** | `drivers/mongodb` | `mongodb` |
 
 ## Error Handling
 
-All errors extend `JsonQLError` and include a machine-readable `code` for programmatic handling:
+All errors include a machine-readable `error_code`:
 
 ```mermaid
 graph TD
@@ -163,63 +207,68 @@ graph TD
     E --> X["JsonQLExecutionError<br/>(EXECUTION_ERROR)"]
 ```
 
-Framework adapters include the `error_code` field in error responses:
-
 ```json
-{
-  "error": "Field 'secret' is not allowed",
-  "error_code": "VALIDATION_ERROR"
-}
+{ "error": "Field 'secret' is not allowed", "error_code": "VALIDATION_ERROR" }
 ```
+
+## Advanced: Query Builder
+
+For server-side programmatic query construction:
+
+```typescript
+import { JSONQLQueryBuilder } from '@jsonql-standard/jsonql-ts';
+
+const query = new JSONQLQueryBuilder()
+  .from('users')
+  .select('id', 'name')
+  .where({ status: { eq: 'active' } })
+  .orderBy('-created_at')
+  .limit(10)
+  .build();
+```
+
+## Advanced: Low-Level Transpiler
+
+Use the transpiler directly for custom pipelines:
+
+```typescript
+import { SQLTranspiler } from '@jsonql-standard/jsonql-ts';
+
+const transpiler = new SQLTranspiler('postgres');
+const { sql, parameters } = transpiler.transpile(query, 'users');
+// → SELECT "users"."id", "users"."name" FROM "users" WHERE "users"."status" = $1
+```
+
+## Core API
+
+| Export | Purpose |
+|--------|---------|
+| `jsonqlExpress()` | Express middleware — mount and go |
+| `jsonqlFastify` | Fastify plugin with auto-routing |
+| `JsonqlModule` | NestJS module with injectable service |
+| `JSONQLParser` | Parse & validate incoming JSON |
+| `SQLTranspiler` | Convert parsed query → SQL + params |
+| `ResultHydrator` | Flatten SQL joins → nested JSON |
+| `JSONQLQueryBuilder` | Fluent query construction (advanced) |
+| `JSONQLMutationBuilder` | Fluent mutation construction (advanced) |
+| `SchemaManager` | Load schemas from introspection + JSON |
 
 ## Compliance
 
-All 3 framework adapters × 4 SQL databases + 3 lifecycle containers = **15 configurations** pass **135/135** compliance tests.
-
-> **Note:** The TypeScript SDK includes a MongoDB driver and `MongoTranspiler`, but MongoDB compliance testing is not yet wired into the CI matrix. MongoDB support is functional but not formally validated by the compliance suite.
+135/135 tests passing across all configurations:
 
 | Adapter | PostgreSQL | MySQL | SQLite | MSSQL |
 |---------|:----------:|:-----:|:------:|:-----:|
-| **Express** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
-| **Fastify** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
-| **NestJS** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
-
-Lifecycle tests (Express, Fastify, NestJS × PostgreSQL) also pass.
+| **Express** | ✅ | ✅ | ✅ | ✅ |
+| **Fastify** | ✅ | ✅ | ✅ | ✅ |
+| **NestJS** | ✅ | ✅ | ✅ | ✅ |
 
 ## Development
 
-### Build & Test
-
 ```bash
-npm install           # Install dependencies
-npm test              # Run all tests (Jest + ts-jest)
-npm run build         # Compile TypeScript
+npm install && npm test       # Install + test
+npx prettier --check .        # Format check (CI enforced)
 ```
-
-### Formatting
-
-The TypeScript SDK uses [Prettier](https://prettier.io/) for code formatting. Configuration: `singleQuote`, `semi`, `trailingComma: "all"`, `printWidth: 100`. Formatting is enforced in CI.
-
-```bash
-npx prettier --check .   # Check formatting (CI runs this)
-npx prettier --write .   # Auto-format all files
-```
-
-### Pre-commit Hook
-
-A pre-commit hook runs Prettier and TypeScript type-checking before each commit. To install:
-
-```bash
-cp hooks/pre-commit .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
-```
-
-### CI Pipeline
-
-The GitHub Actions CI runs two jobs:
-
-1. **lint** — `prettier --check` + `tsc --noEmit` (format + type verification)
-2. **test** — `npm test` on Node.js 18 and 20 (gated by lint)
 
 ## Repo
 
