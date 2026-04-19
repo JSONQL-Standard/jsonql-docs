@@ -20,6 +20,14 @@ description: What we have shipped and what is coming next.
 - Lifecycle hook testing for all SDKs
 - Automated CI pipeline with GitHub Actions
 
+### Error Handling
+- Typed error hierarchy across all SDKs (`JsonQLError` base → `ValidationError`, `TranspileError`, `ExecutionError`)
+- Machine-readable `error_code` in all framework adapter error responses
+- Language-specific extras: Go `ParseError`, Java `HookException`, Python `AdapterError`
+
+### Go Engine
+- `Engine` / `EngineBuilder` high-level pipeline (matching Java and Python engines)
+
 ### Specification
 - JSONQL v1.0 (Stable) — core query language
 - JSONQL v1.1 (Draft) — aggregation, groupBy, distinct, advanced includes

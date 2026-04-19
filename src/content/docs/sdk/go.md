@@ -97,6 +97,14 @@ The SDK follows a modular pipeline:
 | `Validator` | Schema-based permission checking |
 | `Driver` interface | `Query()`, `Execute()`, `Close()` |
 | `SQLDialect` interface | `Placeholder()`, `QuoteIdentifier()`, `SupportsReturning()` |
+| `Engine` | High-level transpile-and-execute pipeline |
+| `EngineBuilder` | Fluent builder for `Engine` configuration |
+| `EngineResult` | Wraps results: `Data`, `IsMutation` |
+| `JsonQLError` interface | Base error interface with `Code() string` |
+| `JsonQLValidationError` | Validation failures with `Errors []ValidationError` |
+| `JsonQLParseError` | JSON parse errors |
+| `JsonQLTranspileError` | SQL/Mongo transpilation errors |
+| `JsonQLExecutionError` | Database execution errors with `Cause` |
 
 ## Supported Databases
 
@@ -116,6 +124,58 @@ The SDK follows a modular pipeline:
 | **Echo** | `github.com/jsonql-standard/jsonql-go/adapters/echo` |
 | **net/http** | `github.com/jsonql-standard/jsonql-go/adapters/http` |
 | **MongoDB (native)** | `github.com/jsonql-standard/jsonql-go/adapters/mongo` |
+
+## Engine
+
+The `Engine` provides a high-level pipeline that combines parsing, transpilation, and execution:
+
+```go
+import "github.com/jsonql-standard/jsonql-go"
+
+engine := jsonql.NewEngineBuilder().
+    Postgres().
+    Schema(schema).
+    Executor(func(ctx context.Context, sql string, args []interface{}) (*sql.Rows, error) {
+        return db.QueryContext(ctx, sql, args...)
+    }).
+    Build()
+
+result, err := engine.Execute(ctx, "users", queryMap)
+// result.Data       — []map[string]interface{}
+// result.IsMutation — bool
+```
+
+The builder supports `.Postgres()`, `.MySQL()`, `.SQLite()`, `.MSSQL()`, `.Driver(d)`, `.Schema(s)`, `.Executor(fn)`, and `.Debug(true)`.
+
+## Error Handling
+
+All errors implement the `JsonQLError` interface with a `Code() string` method:
+
+```mermaid
+graph TD
+    E["JsonQLError interface"] --> P["JsonQLParseError<br/>(PARSE_ERROR)"]
+    E --> V["JsonQLValidationError<br/>(VALIDATION_ERROR)"]
+    E --> T["JsonQLTranspileError<br/>(TRANSPILE_ERROR)"]
+    E --> X["JsonQLExecutionError<br/>(EXECUTION_ERROR)"]
+```
+
+Check error codes programmatically:
+
+```go
+var jsonqlErr jsonql.JsonQLError
+if errors.As(err, &jsonqlErr) {
+    fmt.Println(jsonqlErr.Code()) // "VALIDATION_ERROR"
+}
+```
+
+Framework adapters include the `error_code` field in error responses:
+
+```json
+{
+  "error": "Field 'secret' is not allowed",
+  "error_code": "VALIDATION_ERROR"
+}
+```
 
 ## Query Builder
 

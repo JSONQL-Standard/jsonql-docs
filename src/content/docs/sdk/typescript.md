@@ -8,7 +8,7 @@ The official Node.js/TypeScript SDK for JSONQL. Type-safe query building, SQL tr
 | | |
 |---|---|
 | **Package** | `@jsonql-standard/jsonql-ts` |
-| **Version** | 1.0.0 |
+| **Version** | 1.0.1 |
 | **License** | MIT |
 | **Runtime** | Node.js 18+ |
 
@@ -129,6 +129,10 @@ async function getUsers(jsonqlQuery) {
 | `SQLTranspiler` | Convert parsed query → SQL + params |
 | `ResultHydrator` | Flatten SQL joins → nested JSON |
 | `SchemaManager` | Load schemas from introspection + JSON files |
+| `JsonQLError` | Base error class with `code` and `message` |
+| `JsonQLValidationError` | Validation failures with `errors[]` detail |
+| `JsonQLTranspileError` | SQL/Mongo transpilation errors |
+| `JsonQLExecutionError` | Database execution errors with optional `cause` |
 
 ## Supported Databases
 
@@ -147,6 +151,26 @@ async function getUsers(jsonqlQuery) {
 | **Express** | `jsonqlExpress()` | Middleware — sets `req.jsonql` |
 | **Fastify** | `jsonqlFastify` | Plugin — sets `req.jsonql` |
 | **NestJS** | `JsonqlModule` / `JsonqlService` | Module with injectable service |
+
+## Error Handling
+
+All errors extend `JsonQLError` and include a machine-readable `code` for programmatic handling:
+
+```mermaid
+graph TD
+    E["JsonQLError"] --> V["JsonQLValidationError<br/>(VALIDATION_ERROR)"]
+    E --> T["JsonQLTranspileError<br/>(TRANSPILE_ERROR)"]
+    E --> X["JsonQLExecutionError<br/>(EXECUTION_ERROR)"]
+```
+
+Framework adapters include the `error_code` field in error responses:
+
+```json
+{
+  "error": "Field 'secret' is not allowed",
+  "error_code": "VALIDATION_ERROR"
+}
+```
 
 ## Compliance
 

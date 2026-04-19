@@ -207,6 +207,11 @@ urlpatterns = [
 | `MutationBuilder` | Fluent mutation construction |
 | `ResultHydrator` | Flatten SQL joins → nested JSON |
 | `JsonQLEngine` | Full pipeline with builder pattern |
+| `JsonQLError` | Base error with `code` and `message` |
+| `JsonQLValidationError` | Validation failures with `errors` detail |
+| `JsonQLTranspileError` | SQL/Mongo transpilation errors |
+| `JsonQLExecutionError` | Database execution errors with chained `__cause__` |
+| `AdapterError` | HTTP adapter errors with `status` code |
 
 ## Condition Helpers
 
@@ -231,13 +236,35 @@ from jsonql.conditions import (
 
 The Python SDK includes a `MongoTranspiler` and `MongoDriver` for MongoDB support, along with dedicated MongoDB adapter variants for each framework (`flask_mongo`, `fastapi_mongo`, `django_mongo`).
 
-## Error Hierarchy
+## Error Handling
+
+All errors extend `JsonQLError` and include a machine-readable `code` for programmatic handling:
 
 ```mermaid
 graph TD
-    E["JsonQLError"] --> V["JsonQLValidationError<br/>(VALIDATION_ERROR)"]
+    E["JsonQLError<br/>(JSONQL_ERROR)"] --> V["JsonQLValidationError<br/>(VALIDATION_ERROR)"]
     E --> T["JsonQLTranspileError<br/>(TRANSPILE_ERROR)"]
     E --> X["JsonQLExecutionError<br/>(EXECUTION_ERROR)"]
+    E --> A["AdapterError<br/>(ADAPTER_ERROR)"]
+```
+
+```python
+try:
+    result = engine.execute("users", query)
+except JsonQLValidationError as e:
+    print(e.code)    # "VALIDATION_ERROR"
+    print(e.errors)  # [ValidationError(...)]
+except JsonQLError as e:
+    print(e.code)    # "JSONQL_ERROR" (base)
+```
+
+Framework adapters include the `error_code` field in error responses:
+
+```json
+{
+  "error": "Field 'secret' is not allowed",
+  "error_code": "VALIDATION_ERROR"
+}
 ```
 
 ## Compliance

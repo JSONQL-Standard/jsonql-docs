@@ -9,7 +9,7 @@ The official Java SDK for JSONQL. A unified engine for transpiling and executing
 |---|---|
 | **Group ID** | `org.jsonql` |
 | **Artifact ID** | `jsonql-java` |
-| **Version** | 1.0-SNAPSHOT |
+| **Version** | 1.0.0 |
 | **Java** | 17+ |
 | **License** | MIT |
 
@@ -34,7 +34,7 @@ The official Java SDK for JSONQL. A unified engine for transpiling and executing
 <dependency>
     <groupId>org.jsonql</groupId>
     <artifactId>jsonql-java</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
@@ -173,6 +173,11 @@ public Response handle(@PathParam("table") String table,
 | `SpringAdapter` | Spring Boot HTTP adapter |
 | `JakartaAdapter` | Jakarta EE / JAX-RS HTTP adapter |
 | `CacheProvider` | Cache interface with in-memory implementation |
+| `JsonQLException` | Base exception with `getCode()` and `getMessage()` |
+| `JsonQLValidationException` | Validation failures with `getErrors()` detail |
+| `JsonQLTranspileException` | SQL/Mongo transpilation errors |
+| `JsonQLExecutionException` | Database execution errors wrapping `SQLException` |
+| `JsonQLHookException` | Lifecycle hook errors with HTTP `status` |
 
 ## Supported Databases
 
@@ -183,6 +188,38 @@ public Response handle(@PathParam("table") String table,
 | **SQLite** | `SQLiteDialect` | `?, ?` | `"col"` |
 | **MSSQL** | `MSSQLDialect` | `@p1, @p2` | `[col]` |
 | **Generic** | `GenericDialect` | `?, ?` | `"col"` |
+
+## Error Handling
+
+All exceptions extend `JsonQLException` (a `RuntimeException`) and include a machine-readable `code`:
+
+```mermaid
+graph TD
+    E["JsonQLException<br/>(JSONQL_ERROR)"] --> V["JsonQLValidationException<br/>(VALIDATION_ERROR)"]
+    E --> T["JsonQLTranspileException<br/>(TRANSPILE_ERROR)"]
+    E --> X["JsonQLExecutionException<br/>(EXECUTION_ERROR)"]
+    E --> H["JsonQLHookException<br/>(JSONQL_ERROR)"]
+```
+
+```java
+try {
+    engine.executeRequest(conn, request);
+} catch (JsonQLValidationException e) {
+    e.getCode();   // "VALIDATION_ERROR"
+    e.getErrors(); // List<ValidationError>
+} catch (JsonQLException e) {
+    e.getCode();   // "JSONQL_ERROR" (base)
+}
+```
+
+Framework adapters include the `error_code` field in error responses:
+
+```json
+{
+  "error": "Field 'secret' is not allowed",
+  "error_code": "VALIDATION_ERROR"
+}
+```
 
 ## Compliance
 
