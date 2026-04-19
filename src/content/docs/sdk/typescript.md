@@ -79,13 +79,24 @@ fastify.get('/users', (req, reply) => {
 ### NestJS Adapter
 
 ```typescript
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { JsonqlMiddleware } from '@jsonql-standard/jsonql-ts';
+import { Controller, All, Req, Res, Module } from '@nestjs/common';
+import { Request, Response } from 'express';
+import { JsonqlModule, JsonqlService } from '@jsonql-standard/jsonql-ts';
 
-@Module({ ... })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(JsonqlMiddleware).forRoutes('*');
+// Register the module
+@Module({
+  imports: [JsonqlModule.forRoot({ /* AdapterOptions */ })],
+})
+export class AppModule {}
+
+// Inject JsonqlService in a controller
+@Controller()
+export class AppController {
+  constructor(private readonly jsonql: JsonqlService) {}
+
+  @All(':resource')
+  async handle(@Req() req: Request, @Res() res: Response) {
+    return this.jsonql.handleRequest(req, req.path, res);
   }
 }
 ```
@@ -135,11 +146,13 @@ async function getUsers(jsonqlQuery) {
 |-----------|--------|------------------|
 | **Express** | `jsonqlExpress()` | Middleware — sets `req.jsonql` |
 | **Fastify** | `jsonqlFastify` | Plugin — sets `req.jsonql` |
-| **NestJS** | `JsonqlMiddleware` | NestJS middleware class |
+| **NestJS** | `JsonqlModule` / `JsonqlService` | Module with injectable service |
 
 ## Compliance
 
 All 3 framework adapters × 4 SQL databases + 3 lifecycle containers = **15 configurations** pass **135/135** compliance tests.
+
+> **Note:** The TypeScript SDK includes a MongoDB driver and `MongoTranspiler`, but MongoDB compliance testing is not yet wired into the CI matrix. MongoDB support is functional but not formally validated by the compliance suite.
 
 | Adapter | PostgreSQL | MySQL | SQLite | MSSQL |
 |---------|:----------:|:-----:|:------:|:-----:|
@@ -148,6 +161,41 @@ All 3 framework adapters × 4 SQL databases + 3 lifecycle containers = **15 conf
 | **NestJS** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
 
 Lifecycle tests (Express, Fastify, NestJS × PostgreSQL) also pass.
+
+## Development
+
+### Build & Test
+
+```bash
+npm install           # Install dependencies
+npm test              # Run all tests (Jest + ts-jest)
+npm run build         # Compile TypeScript
+```
+
+### Formatting
+
+The TypeScript SDK uses [Prettier](https://prettier.io/) for code formatting. Configuration: `singleQuote`, `semi`, `trailingComma: "all"`, `printWidth: 100`. Formatting is enforced in CI.
+
+```bash
+npx prettier --check .   # Check formatting (CI runs this)
+npx prettier --write .   # Auto-format all files
+```
+
+### Pre-commit Hook
+
+A pre-commit hook runs Prettier and TypeScript type-checking before each commit. To install:
+
+```bash
+cp hooks/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+### CI Pipeline
+
+The GitHub Actions CI runs two jobs:
+
+1. **lint** — `prettier --check` + `tsc --noEmit` (format + type verification)
+2. **test** — `npm test` on Node.js 18 and 20 (gated by lint)
 
 ## Repo
 

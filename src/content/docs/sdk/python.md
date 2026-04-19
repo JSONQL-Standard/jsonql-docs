@@ -29,17 +29,19 @@ The official Python SDK for JSONQL. Pythonic query building, SQL transpilation, 
 ## Installation
 
 ```bash
-pip install jsonql
+pip install jsonql-py
 ```
 
 With framework extras:
 
 ```bash
-pip install jsonql[flask]      # Flask adapter
-pip install jsonql[fastapi]    # FastAPI + uvicorn
-pip install jsonql[django]     # Django REST Framework
-pip install jsonql[postgres]   # psycopg2-binary
+pip install jsonql-py[flask]      # Flask adapter
+pip install jsonql-py[fastapi]    # FastAPI + uvicorn
+pip install jsonql-py[django]     # Django REST Framework
+pip install jsonql-py[postgres]   # psycopg2-binary
 ```
+
+> **Note:** The import name is still `import jsonql` — only the PyPI package name is `jsonql-py`.
 
 ## Quick Start
 
@@ -249,6 +251,41 @@ All 3 framework adapters × 5 databases + 3 lifecycle containers = **18 configur
 | **Django** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
 
 Lifecycle tests (Flask, FastAPI, Django × PostgreSQL) also pass.
+
+## Development
+
+### Setup & Test
+
+```bash
+pip install -e ".[dev]"   # Install in editable mode with dev deps
+pytest                    # Run all tests
+```
+
+### Formatting & Linting
+
+The Python SDK uses [Ruff](https://docs.astral.sh/ruff/) for formatting and linting (rules: E/F/I/W, line-length 100, target py310). Both are enforced in CI.
+
+```bash
+ruff format .             # Auto-format all Python files
+ruff format --check .     # Check formatting (CI runs this)
+ruff check .              # Lint check (CI runs this)
+```
+
+### Pre-commit Hook
+
+A pre-commit hook runs Ruff format and lint checks before each commit. To install:
+
+```bash
+cp hooks/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+### CI Pipeline
+
+The GitHub Actions CI runs two jobs:
+
+1. **lint** — `ruff format --check` + `ruff check` (format + lint verification)
+2. **test** — `pytest` on Python 3.10 and 3.12 (gated by lint)
 
 ## Repo
 

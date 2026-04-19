@@ -37,7 +37,7 @@ graph TD
 | **Builder** | Fluent API for constructing JSONQL queries programmatically | All SDKs |
 | **Schema** | Table/field/relation definitions with permissions | All SDKs |
 | **Adapter** | Framework-specific HTTP integration (routing, request parsing) | All SDKs |
-| **Engine** | Unified pipeline orchestrator (parse → validate → transpile → execute → hydrate) | All SDKs |
+| **Engine** | Unified pipeline orchestrator (parse → validate → transpile → execute → hydrate) | Java, Python |
 
 ## Ecosystem Map
 
@@ -73,6 +73,7 @@ graph TD
 | SQLite dialect | ✅ | ✅ | ✅ | ✅ |
 | MSSQL dialect | ✅ | ✅ | ✅ | ✅ |
 | MongoDB transpiler | ✅ | ✅ | ✅ | ✅ |
+| Engine | — | — | ✅ | ✅ |
 | Framework adapters | 3 | 3 | 2 | 3 |
 
 ## Security Model

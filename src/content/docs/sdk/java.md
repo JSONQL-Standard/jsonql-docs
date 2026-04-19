@@ -195,6 +195,40 @@ All 2 framework adapters × 5 databases + 2 lifecycle containers = **12 configur
 
 Lifecycle tests (Spring Boot + Jakarta EE × PostgreSQL) also pass.
 
+## Development
+
+### Build & Test
+
+```bash
+mvn test              # Run all unit tests (JUnit 4 + H2)
+mvn package -DskipTests  # Build JAR without tests
+```
+
+### Formatting
+
+The Java SDK uses [Spotless](https://github.com/diffplug/spotless) with **google-java-format** (AOSP style). Formatting is enforced in CI — PRs will fail if code is not formatted.
+
+```bash
+mvn spotless:check    # Check formatting (CI runs this)
+mvn spotless:apply    # Auto-format all Java files
+```
+
+### Pre-commit Hook
+
+A pre-commit hook runs `mvn spotless:check` before each commit. To install it:
+
+```bash
+cp hooks/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+### CI Pipeline
+
+The GitHub Actions CI runs two jobs:
+
+1. **lint** — `mvn spotless:check` (format verification)
+2. **test** — `mvn test` on Java 17 and 21 (gated by lint)
+
 ## Repo
 
 [`github.com/jsonql-standard/jsonql-java`](https://github.com/JSONQL-Standard/jsonql-java)

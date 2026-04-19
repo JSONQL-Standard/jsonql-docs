@@ -49,6 +49,28 @@ pytest
 mvn test
 ```
 
+### Formatting & Linting
+
+All SDKs enforce code formatting in CI. **PRs will fail if formatting checks don't pass.** Run the appropriate command before committing:
+
+| SDK | Format Check (CI) | Auto-fix | Tool |
+|-----|-------------------|----------|------|
+| **TypeScript** | `npx prettier --check .` | `npx prettier --write .` | Prettier |
+| **Go** | `gofmt -l .` | `gofmt -w .` | gofmt |
+| **Python** | `ruff format --check .` + `ruff check .` | `ruff format .` | Ruff |
+| **Java** | `mvn spotless:check` | `mvn spotless:apply` | Spotless (google-java-format) |
+
+### Pre-commit Hooks
+
+Each SDK includes a pre-commit hook that runs format checks automatically before every commit. To install:
+
+```bash
+cp hooks/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+This prevents accidentally committing unformatted code.
+
 ### Compliance Testing
 
 After making SDK changes, verify compliance:
@@ -100,7 +122,8 @@ The site runs on `http://localhost:4321`.
 - Include tests for new functionality
 - Run the compliance suite before submitting
 - Update documentation if you change public APIs
-- Follow existing code style and conventions
+- Run `format` / `lint` checks before pushing (see [Formatting & Linting](#formatting--linting))
+- Follow existing code style and conventions (enforced by CI)
 
 ## Architecture Decisions
 

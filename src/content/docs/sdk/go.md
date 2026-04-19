@@ -125,9 +125,9 @@ import "github.com/jsonql-standard/jsonql-go/builder"
 q := builder.New().
 	From("users").
 	Select("id", "name", "email").
-	Where("status", "active").
-	AndWhere("age", map[string]any{"gte": 18}).
-	Sort("-created_at").
+	Where(map[string]any{"status": map[string]any{"eq": "active"}}).
+	AndWhere(map[string]any{"age": map[string]any{"gte": 18}}).
+	OrderBy("-created_at").
 	Limit(10).
 	Build()
 ```
@@ -143,6 +143,41 @@ All 3 framework adapters × 5 databases + 3 lifecycle containers = **18 configur
 | **net/http** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
 
 Lifecycle tests (Gin, Echo, net/http × PostgreSQL) also pass.
+
+## Development
+
+### Build & Test
+
+```bash
+make test             # Run all tests (go test with gotestsum)
+go build ./...        # Build all packages
+```
+
+### Formatting & Linting
+
+The Go SDK uses the standard `gofmt` and `go vet` tools. Formatting is enforced in CI.
+
+```bash
+gofmt -l .            # List files needing formatting
+gofmt -w .            # Auto-format all Go files
+go vet ./...          # Run static analysis (CI runs this)
+```
+
+### Pre-commit Hook
+
+A pre-commit hook runs `gofmt` and `go vet` before each commit. To install:
+
+```bash
+cp hooks/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+### CI Pipeline
+
+The GitHub Actions CI runs two jobs:
+
+1. **lint** — `gofmt` check + `go vet` (format + static analysis)
+2. **test** — `make test` on Go 1.24 (gated by lint)
 
 ## Repo
 

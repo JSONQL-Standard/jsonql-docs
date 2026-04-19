@@ -13,7 +13,7 @@ Choose the SDK for your runtime:
 |-----|---------|-----------|
 | [Go](/sdk/go/) | `go get github.com/jsonql-standard/jsonql-go` | Gin, Echo, net/http |
 | [TypeScript](/sdk/typescript/) | `npm install @jsonql-standard/jsonql-ts` | Express, Fastify, NestJS |
-| [Python](/sdk/python/) | `pip install jsonql` | Flask, FastAPI, Django |
+| [Python](/sdk/python/) | `pip install jsonql-py` | Flask, FastAPI, Django |
 | [Java](/sdk/java/) | Maven dependency | Spring Boot, Jakarta EE |
 
 ## 2. Define a Query
@@ -95,9 +95,9 @@ Or in Go:
 q := builder.New().
     From("users").
     Select("id", "name").
-    Where("status", "active").
-    AndWhere("age", map[string]any{"gte": 18}).
-    Sort("-created_at").
+    Where(map[string]any{"status": map[string]any{"eq": "active"}}).
+    AndWhere(map[string]any{"age": map[string]any{"gte": 18}}).
+    OrderBy("-created_at").
     Limit(10).
     Build()
 ```
