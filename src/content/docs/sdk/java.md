@@ -9,7 +9,7 @@ The official Java SDK for JSONQL. A unified engine for transpiling and executing
 |---|---|
 | **Group ID** | `org.jsonql` |
 | **Artifact ID** | `jsonql-java` |
-| **Version** | 1.0.0 |
+| **Version** | 1.1.0 |
 | **Java** | 17+ |
 | **License** | MIT |
 

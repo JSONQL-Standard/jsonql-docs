@@ -8,7 +8,7 @@ The official Python SDK for JSONQL. Pythonic query building, SQL transpilation, 
 | | |
 |---|---|
 | **Package** | `jsonql` |
-| **Version** | 0.1.0 |
+| **Version** | 1.1.0 |
 | **Python** | 3.10+ |
 | **License** | MIT |
 

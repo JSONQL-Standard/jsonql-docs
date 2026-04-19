@@ -8,7 +8,7 @@ The official Node.js/TypeScript SDK for JSONQL. Type-safe query building, SQL tr
 | | |
 |---|---|
 | **Package** | `@jsonql-standard/jsonql-ts` |
-| **Version** | 1.0.1 |
+| **Version** | 1.1.0 |
 | **License** | MIT |
 | **Runtime** | Node.js 18+ |
 
