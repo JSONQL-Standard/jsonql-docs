@@ -270,6 +270,34 @@ npm install && npm test       # Install + test
 npx prettier --check .        # Format check (CI enforced)
 ```
 
+## Architecture
+
+The SDK is organised into 12 canonical modules. A request flows through them in order:
+
+```
+parser → validator → transpiler → driver → drivers → hydrator
+                            ↑ factory wires it together
+                            ↑ builder is an alternative input
+```
+
+| Module | File | Purpose |
+|--------|------|---------|
+| **parser** | `src/parser/` | Tokenise & validate incoming JSON, produce an AST |
+| **validator** | `src/validator/` | Schema & permission checks against the AST |
+| **transpiler** | `src/transpiler/` | AST → parameterised SQL for the active dialect |
+| **mongo_transpiler** | _planned (parity gap with Go/Py/Java)_ | AST → MongoDB filter & aggregation pipelines |
+| **dialect** | `src/transpiler/dialect.ts` | Per-flavour quoting & parameter markers (Postgres `$1`, MySQL/SQLite `?`, MSSQL `@p1`) |
+| **driver** | `src/driver.ts` | Orchestrates execute → retry → diagnostics |
+| **drivers** | `src/drivers/` | Concrete backends: `postgres`, `mysql`, `sqlite`, `mssql`, `mongodb` |
+| **hydrator** | `src/hydrator.ts` | Flatten join rows back into nested JSON |
+| **factory** | `src/core.ts` (`createJsonql()` helper) | One-call wiring of parser + transpiler + driver + hydrator |
+| **builder** | `src/builder/` | Fluent `JSONQLQueryBuilder` / `JSONQLMutationBuilder` |
+| **schema** | `src/schema/` | Optional schema loader (introspection + JSON) |
+| **adapters** | `src/adapters/` | Framework integrations: `express`, `fastify`, `nestjs` |
+| **errors** | `src/errors.ts` | `JsonQLError` hierarchy with `error_code` |
+
+For most apps you only touch **adapters** at install time and the **factory** for advanced wiring. Everything else is automatic.
+
 ## Repo
 
 [`github.com/jsonql-standard/jsonql-ts`](https://github.com/JSONQL-Standard/jsonql-ts)

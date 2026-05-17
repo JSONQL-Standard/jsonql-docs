@@ -298,6 +298,34 @@ go vet ./...          # Static analysis (CI enforced)
 gofmt -w .            # Auto-format
 ```
 
+## Architecture
+
+The SDK is organised into 12 canonical modules. A request flows through them in order:
+
+```
+parser → validator → transpiler → driver → drivers → hydrator
+                            ↑ factory / engine wires it together
+                            ↑ builder is an alternative input
+```
+
+| Module | File | Purpose |
+|--------|------|---------|
+| **parser** | `parser.go` | Tokenise & validate incoming JSON, produce an AST |
+| **validator** | embedded in parser & schema | Schema & permission checks against the AST |
+| **transpiler** | `transpiler.go` | AST → parameterised SQL for the active dialect |
+| **mongo_transpiler** | `mongo_transpiler.go` | AST → MongoDB filter & aggregation pipelines |
+| **dialect** | `dialect.go` | Per-flavour quoting & parameter markers (Postgres `$1`, MySQL/SQLite `?`, MSSQL `@p1`) |
+| **driver** | `driver.go` | `Driver` interface: `Query`, `Execute`, `Close` |
+| **drivers** | `drivers/{postgres,mysql,sqlite,mssql,mongodb}` | Concrete backends |
+| **hydrator** | `hydrator.go` | Flatten join rows back into nested maps |
+| **factory** / **engine** | `factory.go`, `engine.go` (`NewEngineBuilder()`) | One-call wiring of parser + transpiler + driver + hydrator |
+| **builder** | `builder/` | Fluent `QueryBuilder` for programmatic queries |
+| **schema** | `schema.go`, `schema/` | Optional schema loader (introspection + JSON) |
+| **adapters** | `adapters/{gin,echo,http}` | Framework integrations |
+| **errors** | `errors.go` | `JsonQLError` interface with `Code()` |
+
+For most apps you only touch **adapters** at install time and the **factory** / engine for advanced wiring. Everything else is automatic.
+
 ## Repo
 
 [`github.com/jsonql-standard/jsonql-go`](https://github.com/JSONQL-Standard/jsonql-go)

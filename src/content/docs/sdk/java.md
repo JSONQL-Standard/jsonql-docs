@@ -299,6 +299,34 @@ mvn test                # Run all tests (JUnit 4 + H2)
 mvn verify              # Full verification including integration tests
 ```
 
+## Architecture
+
+The SDK is organised into 12 canonical modules. A request flows through them in order:
+
+```
+parser → validator → transpiler → driver → drivers → hydrator
+                            ↑ factory wires it together
+                            ↑ builder is an alternative input
+```
+
+| Module | File | Purpose |
+|--------|------|---------|
+| **parser** | `JsonQLParser.java` | Tokenise & validate incoming JSON, produce an AST |
+| **validator** | embedded in parser & schema | Schema & permission checks against the AST |
+| **transpiler** | `SQLTranspiler.java` | AST → parameterised SQL for the active dialect |
+| **mongo_transpiler** | `MongoTranspiler.java` | AST → MongoDB filter & aggregation pipelines |
+| **dialect** | `dialect/*.java` | Per-flavour quoting & parameter markers (Postgres `$1`, MySQL/SQLite `?`, MSSQL `@p1`) |
+| **driver** | `JsonQLDriver.java` | Interface: `query()`, `execute()`, `close()` |
+| **drivers** | per JDBC driver (Postgres, MySQL, SQLite, MSSQL) + `mongodb` | Concrete backends |
+| **hydrator** | `hydrator/` | Flatten join rows back into nested POJOs/maps |
+| **factory** | `JsonQLFactory.java` (`JsonQLFactory.builder()`) | One-call wiring of parser + transpiler + driver + hydrator |
+| **builder** | `QueryBuilder.java` | Fluent programmatic query construction |
+| **schema** | `schema/` (`JsonQLSchema.builder()`) | Optional schema loader |
+| **adapters** | `adapter/{spring,servlet}` | Framework integrations |
+| **errors** | `JsonQLException` and subclasses | Error hierarchy with `getErrorCode()` |
+
+For most apps you only touch **adapters** at install time and the **factory** for advanced wiring. Everything else is automatic.
+
 ## Repo
 
 [`github.com/jsonql-standard/jsonql-java`](https://github.com/JSONQL-Standard/jsonql-java)

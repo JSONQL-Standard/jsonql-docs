@@ -304,6 +304,34 @@ ruff check .              # Lint (rules E/F/I/W)
 mypy src/                 # Type checking (strict)
 ```
 
+## Architecture
+
+The SDK is organised into 12 canonical modules. A request flows through them in order:
+
+```
+parser → validator → transpiler → driver → drivers → hydrator
+                            ↑ factory / engine wires it together
+                            ↑ builder is an alternative input
+```
+
+| Module | File | Purpose |
+|--------|------|---------|
+| **parser** | `src/jsonql/parser.py` | Tokenise & validate incoming JSON, produce an AST |
+| **validator** | embedded in parser & schema | Schema & permission checks against the AST |
+| **transpiler** | `src/jsonql/transpiler.py` | AST → parameterised SQL for the active dialect |
+| **mongo_transpiler** | `src/jsonql/mongo_transpiler.py` | AST → MongoDB filter & aggregation pipelines |
+| **dialect** | `src/jsonql/dialect.py` | Per-flavour quoting & parameter markers (Postgres `$1`, MySQL/SQLite `?`, MSSQL `@p1`) |
+| **driver** | `src/jsonql/driver.py` | `DatabaseDriver` abstraction: execute, retry, diagnostics |
+| **drivers** | `src/jsonql/drivers/` | Concrete drivers / `execute` callables for each backend |
+| **hydrator** | `src/jsonql/hydrator.py` | Flatten join rows back into nested dicts |
+| **factory** / **engine** | `src/jsonql/factory.py`, `src/jsonql/engine.py` (`JsonQLEngine`) | One-call wiring of parser + transpiler + driver + hydrator |
+| **builder** | `src/jsonql/builder.py` | Fluent `QueryBuilder` + condition helpers (`eq`, `gt`, `in_list`, …) |
+| **schema** | `src/jsonql/schema.py` | Optional schema loader |
+| **adapters** | `src/jsonql/adapters/{flask,fastapi,django}` | Framework integrations |
+| **errors** | `src/jsonql/errors.py` | `JsonQLError` hierarchy with `error_code` |
+
+For most apps you only touch the framework adapter at install time and the **factory** / engine for advanced wiring. Everything else is automatic.
+
 ## Repo
 
 [`github.com/jsonql-standard/jsonql-py`](https://github.com/JSONQL-Standard/jsonql-py)
