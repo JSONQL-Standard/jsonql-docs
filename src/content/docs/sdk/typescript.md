@@ -285,7 +285,7 @@ parser → validator → transpiler → driver → drivers → hydrator
 | **parser** | `src/parser/` | Tokenise & validate incoming JSON, produce an AST |
 | **validator** | `src/validator/` | Schema & permission checks against the AST |
 | **transpiler** | `src/transpiler/` | AST → parameterised SQL for the active dialect |
-| **mongo_transpiler** | _planned (parity gap with Go/Py/Java)_ | AST → MongoDB filter & aggregation pipelines |
+| **mongo_transpiler** | `src/transpiler/mongo.ts` | AST → MongoDB filter & aggregation pipelines |
 | **dialect** | `src/transpiler/dialect.ts` | Per-flavour quoting & parameter markers (Postgres `$1`, MySQL/SQLite `?`, MSSQL `@p1`) |
 | **driver** | `src/driver.ts` | Orchestrates execute → retry → diagnostics |
 | **drivers** | `src/drivers/` | Concrete backends: `postgres`, `mysql`, `sqlite`, `mssql`, `mongodb` |
