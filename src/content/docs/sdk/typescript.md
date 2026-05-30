@@ -227,6 +227,32 @@ const query = new JSONQLQueryBuilder()
   .build();
 ```
 
+## Advanced: Engine Facade
+
+When you want the full pipeline (parse → validate → transpile → execute →
+hydrate) without wiring a framework adapter, use the `JSONQLEngine` facade.
+It mirrors the `Engine` builder shipped by the Go, Python, and Java SDKs, so
+the high-level API is consistent across the ecosystem.
+
+```typescript
+import { JSONQLEngine } from '@jsonql-standard/jsonql-ts';
+
+const engine = JSONQLEngine.builder()
+  .postgres()
+  .schema(schema)
+  .driver(driver) // or .executor(async (sql, params) => db.query(sql, params))
+  .build();
+
+const result = await engine.execute({ where: { age: { gt: 18 } } }, 'users');
+console.log(result.data); // hydrated rows
+console.log(result.isMutation); // false
+```
+
+Builder methods: `.postgres()` / `.mysql()` / `.sqlite()` / `.mssql()` (or
+`.dialect(name)`), `.schema()`, `.driver()`, `.executor()`, `.logger()`,
+`.parserOptions()`, `.debug()`, then `.build()`. When a `.driver()` is set and
+no dialect was chosen, the dialect is inferred from the driver.
+
 ## Advanced: Low-Level Transpiler
 
 Use the transpiler directly for custom pipelines:
@@ -247,6 +273,7 @@ const { sql, parameters } = transpiler.transpile(query, 'users');
 | `jsonqlFastify` | Fastify plugin with auto-routing |
 | `JsonqlModule` | NestJS module with injectable service |
 | `JSONQLParser` | Parse & validate incoming JSON |
+| `JSONQLEngine` | High-level pipeline facade (parse→validate→transpile→execute→hydrate) |
 | `SQLTranspiler` | Convert parsed query → SQL + params |
 | `ResultHydrator` | Flatten SQL joins → nested JSON |
 | `JSONQLQueryBuilder` | Fluent query construction (advanced) |
@@ -290,6 +317,7 @@ parser → validator → transpiler → driver → drivers → hydrator
 | **driver** | `src/driver.ts` | Orchestrates execute → retry → diagnostics |
 | **drivers** | `src/drivers/` | Concrete backends: `postgres`, `mysql`, `sqlite`, `mssql`, `mongodb` |
 | **hydrator** | `src/hydrator.ts` | Flatten join rows back into nested JSON |
+| **engine** | `src/engine.ts` | High-level facade running the full pipeline via a fluent builder |
 | **factory** | `src/core.ts` (`createJsonql()` helper) | One-call wiring of parser + transpiler + driver + hydrator |
 | **builder** | `src/builder/` | Fluent `JSONQLQueryBuilder` / `JSONQLMutationBuilder` |
 | **schema** | `src/schema/` | Optional schema loader (introspection + JSON) |
