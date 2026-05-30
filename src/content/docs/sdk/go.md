@@ -282,7 +282,10 @@ q := builder.New().
 
 ## Compliance
 
-135/135 tests passing across all configurations:
+Verified against the [jsonql-tests](https://github.com/jsonql/jsonql-tests)
+integration suite — the single release gate (live HTTP adapters + real
+databases). Every adapter × database combination passes (141 passed,
+11 skipped per combo):
 
 | Adapter | PostgreSQL | MySQL | SQLite | MSSQL | MongoDB |
 |---------|:----------:|:-----:|:------:|:-----:|:-------:|
