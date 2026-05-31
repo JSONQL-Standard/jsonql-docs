@@ -93,6 +93,44 @@ servletContext.addServlet("jsonql", new JsonQLServlet(opts))
     .addMapping("/api/*");
 ```
 
+### MongoDB
+
+For MongoDB-backed APIs, use the `*MongoAdapter` classes. They take a
+`MongoDriverInterface` (e.g. `MongoDriver` wrapping a `MongoDatabase`) and
+produce the same `{meta, data}` response contract:
+
+```java
+import org.jsonql.MongoDriver;
+import org.jsonql.adapter.MongoAdapterOptions;
+import org.jsonql.adapter.spring.SpringMongoAdapter;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoDatabase;
+
+@RestController
+@RequestMapping("/api")
+public class JsonQLMongoController {
+
+    private final SpringMongoAdapter adapter;
+
+    public JsonQLMongoController() {
+        MongoClient client = MongoClients.create("mongodb://localhost:27017");
+        MongoDatabase db = client.getDatabase("mydb");
+        MongoAdapterOptions opts = new MongoAdapterOptions()
+            .driver(new MongoDriver(client, db));
+
+        this.adapter = new SpringMongoAdapter(opts);
+    }
+
+    @PostMapping("/{collection}")
+    public Object query(@PathVariable String collection, @RequestBody Map<String, Object> body) {
+        var result = adapter.handle(body, "POST", collection);
+        return ResponseEntity.status(result.status).body(result.body);
+    }
+}
+```
+
+The Jakarta variant is `JakartaMongoAdapter`, constructed the same way.
+
 ## What Your Clients Can Do
 
 Every query is a JSON POST to `/api/{table}`:

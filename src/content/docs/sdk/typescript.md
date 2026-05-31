@@ -74,6 +74,34 @@ export class AppModule {}
 
 **That's it.** No query controllers, no endpoint-per-filter, no route boilerplate. Your clients can now query any table dynamically.
 
+### MongoDB
+
+For MongoDB-backed APIs, use the Mongo adapter variants. They take a `database`
+(a connected `mongodb` `Db`) instead of a SQL `driver` and produce the same
+`{ meta, data }` response contract:
+
+```typescript
+import express from 'express';
+import { jsonqlExpressMongo, connectMongo } from '@jsonql-standard/jsonql-ts';
+
+const app = express();
+app.use(express.json());
+
+const { db } = await connectMongo({ uri: 'mongodb://localhost:27017', dbName: 'mydb' });
+
+app.use('/api', jsonqlExpressMongo({ database: db }));
+
+app.listen(3000);
+```
+
+The same family is available for every framework:
+
+| Framework | SQL adapter | MongoDB adapter |
+|-----------|-------------|-----------------|
+| Express | `jsonqlExpress` | `jsonqlExpressMongo` |
+| Fastify | `jsonqlFastify` | `jsonqlFastifyMongo` |
+| NestJS | `JsonqlService` | `JsonqlMongoService` |
+
 ## What Your Clients Can Do
 
 Every query is a JSON POST to `/api/{table}`:

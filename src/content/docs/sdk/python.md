@@ -76,6 +76,35 @@ urlpatterns = [
 
 **That's it.** One execute function, one router mount. Your clients can now query any table dynamically.
 
+### MongoDB
+
+For MongoDB-backed APIs, use the `*_mongo` adapters. They take a connected
+`database` instead of an `execute` function and produce the same `{meta, data}`
+response contract:
+
+```python
+from flask import Flask
+from jsonql import must_connect_mongo, must_load_schema
+from jsonql.adapters import create_flask_mongo_blueprint, MongoAdapterOptions
+
+client, db = must_connect_mongo("mongodb://localhost:27017", "mydb")
+schema = must_load_schema("schema.json")
+
+app = Flask(__name__)
+bp = create_flask_mongo_blueprint(MongoAdapterOptions(database=db, schema=schema))
+app.register_blueprint(bp, url_prefix="/api")
+
+app.run(port=8080)
+```
+
+The same family is available for every framework:
+
+| Framework | SQL adapter | MongoDB adapter |
+|-----------|-------------|-----------------|
+| Flask | `create_flask_blueprint` | `create_flask_mongo_blueprint` |
+| FastAPI | `create_fastapi_router` | `create_fastapi_mongo_router` |
+| Django | `create_django_urls` | `JsonQLDjangoMongoView` |
+
 ## What Your Clients Can Do
 
 Every query is a JSON POST to `/api/{table}`:

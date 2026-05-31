@@ -94,6 +94,36 @@ func main() {
 
 **That's it.** One driver, one handler mount. Your clients can now query any table dynamically.
 
+### MongoDB
+
+For MongoDB-backed APIs, use the `adapters/mongo` package. `Connect` returns a
+`*mongo.Database` and `NewAdapter` gives you the same zero-config `ServeHTTP`
+handler as the SQL adapters — pass a `Database` instead of a `Driver`:
+
+```go
+package main
+
+import (
+    "net/http"
+
+    "github.com/jsonql-standard/jsonql-go"
+    jsonqlmongo "github.com/jsonql-standard/jsonql-go/adapters/mongo"
+)
+
+func main() {
+    db := jsonqlmongo.MustConnect("mongodb://localhost:27017", "mydb")
+    schema := jsonql.MustLoadSchema("schema.json")
+
+    adapter, _ := jsonqlmongo.NewAdapter(jsonqlmongo.AdapterOptions{
+        Database: db,
+        Schema:   schema,
+    })
+
+    http.Handle("/", adapter) // ServeHTTP — collection name from URL path
+    http.ListenAndServe(":8080", nil)
+}
+```
+
 ## What Your Clients Can Do
 
 Every query is a JSON POST to `/{table}`:
