@@ -1,13 +1,16 @@
 ---
 import { LinkButton } from '@astrojs/starlight/components';
-import { Image } from 'astro:assets';
-import heroImage from '../assets/jsonql-hero-banner-logos.png';
 ---
 
 <div class="custom-hero">
   <div class="hero-text">
-    <h1 class="hero-title">JSONQL</h1>
-    <p class="hero-tagline">Build data APIs that speak JSON from end to end.</p>
+    <h1 class="hero-title">
+      JSONQL: The <span class="hero-accent">Query Language</span> for JSON APIs
+    </h1>
+    <p class="hero-tagline">
+      Build data APIs that speak JSON from end to end. Portable, strongly-typed,
+      and developer-first across Go, TypeScript, Python, and Java.
+    </p>
     <div class="hero-actions">
       <LinkButton href="/getting-started/" icon="right-arrow" variant="primary">
         Get Started
@@ -20,65 +23,454 @@ import heroImage from '../assets/jsonql-hero-banner-logos.png';
       </LinkButton>
     </div>
   </div>
-  <div class="hero-anim">
-    <Image src={heroImage} alt="JSONQL Diagram" loading="eager" />
+
+  <div class="hero-editor">
+    <div class="editor-glow"></div>
+    <div class="editor-pane">
+
+      <!-- Title bar -->
+      <div class="editor-titlebar">
+        <div class="editor-dots">
+          <span style="background:#ff5f57"></span>
+          <span style="background:#febc2e"></span>
+          <span style="background:#28c840"></span>
+        </div>
+        <span class="editor-filename" id="hero-filename">schema.json</span>
+        <button class="editor-copy" id="hero-copy-btn" title="Copy">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Pipeline tab bar: CONFIG → QUERY → SQL → RESULT -->
+      <div class="editor-pipeline" role="tablist">
+        <button class="pipe-tab active" data-idx="0" role="tab" aria-selected="true">CONFIG</button>
+        <svg class="pipe-arrow" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M0 5h14M10 1l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <button class="pipe-tab" data-idx="1" role="tab" aria-selected="false">QUERY</button>
+        <svg class="pipe-arrow" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M0 5h14M10 1l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <button class="pipe-tab" data-idx="2" role="tab" aria-selected="false">SQL</button>
+        <svg class="pipe-arrow" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M0 5h14M10 1l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <button class="pipe-tab" data-idx="3" role="tab" aria-selected="false">RESULT</button>
+      </div>
+
+      <!-- Code body -->
+      <div class="editor-body">
+        <pre id="hero-pre"><code id="hero-code"></code></pre>
+      </div>
+
+    </div>
   </div>
 </div>
+
+<script>
+  // Embed the line number inline — \ n between spans is preserved by <pre>
+  function lines(...raw) {
+    return raw.map((l, i) => {
+      const n = String(i + 1).padStart(2, '\u00a0');
+      return `<span class="ln"><span class="ln-n" aria-hidden="true">${n}</span>${l}</span>`;
+    }).join('');
+  }
+
+  // ── Stage data ────────────────────────────────────────────────────────
+  const stages = [
+    {
+      filename: 'schema.json',
+      lang: 'json',
+      html: lines(
+        '<span class="j-comment">// JSONQL — table schema definition</span>',
+        '<span class="j-pun">{</span>',
+        '  <span class="j-key">"tables"</span><span class="j-pun">: {</span>',
+        '    <span class="j-key">"users"</span><span class="j-pun">: {</span>',
+        '      <span class="j-key">"fields"</span><span class="j-pun">: {</span>',
+        '        <span class="j-key">"id"</span><span class="j-pun">:     {</span> <span class="j-key">"type"</span><span class="j-pun">:</span> <span class="j-str">"integer"</span> <span class="j-pun">},</span>',
+        '        <span class="j-key">"name"</span><span class="j-pun">:   {</span> <span class="j-key">"type"</span><span class="j-pun">:</span> <span class="j-str">"string"</span>  <span class="j-pun">},</span>',
+        '        <span class="j-key">"status"</span><span class="j-pun">: {</span> <span class="j-key">"type"</span><span class="j-pun">:</span> <span class="j-str">"string"</span>  <span class="j-pun">},</span>',
+        '        <span class="j-key">"age"</span><span class="j-pun">:    {</span> <span class="j-key">"type"</span><span class="j-pun">:</span> <span class="j-str">"integer"</span> <span class="j-pun">}</span>',
+        '      <span class="j-pun">},</span>',
+        '      <span class="j-key">"relations"</span><span class="j-pun">: {</span>',
+        '        <span class="j-key">"posts"</span><span class="j-pun">: {</span> <span class="j-key">"type"</span><span class="j-pun">:</span> <span class="j-str">"hasMany"</span><span class="j-pun">,</span> <span class="j-key">"foreignKey"</span><span class="j-pun">:</span> <span class="j-str">"user_id"</span> <span class="j-pun">}</span>',
+        '      <span class="j-pun">}</span>',
+        '    <span class="j-pun">}</span>',
+        '  <span class="j-pun">}</span>',
+        '<span class="j-pun">}</span>',
+      ),
+    },
+    {
+      filename: 'query.json',
+      lang: 'json',
+      html: lines(
+        '<span class="j-comment">// filter active adults, newest first</span>',
+        '<span class="j-pun">{</span>',
+        '  <span class="j-key">"version"</span><span class="j-pun">:</span> <span class="j-str">"1.0"</span><span class="j-pun">,</span>',
+        '  <span class="j-key">"where"</span><span class="j-pun">:   {</span>',
+        '    <span class="j-key">"status"</span><span class="j-pun">: {</span> <span class="j-op">"eq"</span><span class="j-pun">:</span>  <span class="j-str">"active"</span> <span class="j-pun">},</span>',
+        '    <span class="j-key">"age"</span><span class="j-pun">:    {</span> <span class="j-op">"gte"</span><span class="j-pun">:</span> <span class="j-num">18</span>       <span class="j-pun">}</span>',
+        '  <span class="j-pun">},</span>',
+        '  <span class="j-key">"fields"</span><span class="j-pun">: [</span><span class="j-str">"id"</span><span class="j-pun">,</span> <span class="j-str">"name"</span><span class="j-pun">,</span> <span class="j-str">"status"</span><span class="j-pun">],</span>',
+        '  <span class="j-key">"sort"</span><span class="j-pun">:   [</span><span class="j-str">"-created_at"</span><span class="j-pun">],</span>',
+        '  <span class="j-key">"limit"</span><span class="j-pun">:  </span><span class="j-num">10</span>',
+        '<span class="j-pun">}</span>',
+      ),
+    },
+    {
+      filename: 'transpiled.sql',
+      lang: 'sql',
+      html: lines(
+        '<span class="j-comment">-- PostgreSQL · parameterized output</span>',
+        '',
+        '<span class="j-kw">SELECT</span>   id<span class="j-pun">,</span> name<span class="j-pun">,</span> status',
+        '<span class="j-kw">FROM</span>     users',
+        '<span class="j-kw">WHERE</span>    status  <span class="j-op">=</span>  <span class="j-param">$1</span>',
+        '  <span class="j-kw">AND</span>    age     <span class="j-op">&gt;=</span> <span class="j-param">$2</span>',
+        '<span class="j-kw">ORDER BY</span> created_at <span class="j-kw">DESC</span>',
+        '<span class="j-kw">LIMIT</span>    <span class="j-num">10</span>',
+        '',
+        '<span class="j-comment">-- params: ["active", 18]</span>',
+      ),
+    },
+    {
+      filename: 'results.json',
+      lang: 'json',
+      html: lines(
+        '<span class="j-pun">{</span>',
+        '  <span class="j-key">"data"</span><span class="j-pun">: [</span>',
+        '    <span class="j-pun">{</span> <span class="j-key">"id"</span><span class="j-pun">:</span> <span class="j-num">1</span><span class="j-pun">,</span> <span class="j-key">"name"</span><span class="j-pun">:</span> <span class="j-str">"Ada Lovelace"</span><span class="j-pun">,</span> <span class="j-key">"status"</span><span class="j-pun">:</span> <span class="j-str">"active"</span> <span class="j-pun">},</span>',
+        '    <span class="j-pun">{</span> <span class="j-key">"id"</span><span class="j-pun">:</span> <span class="j-num">2</span><span class="j-pun">,</span> <span class="j-key">"name"</span><span class="j-pun">:</span> <span class="j-str">"Alan Turing"</span><span class="j-pun">,</span>  <span class="j-key">"status"</span><span class="j-pun">:</span> <span class="j-str">"active"</span> <span class="j-pun">}</span>',
+        '  <span class="j-pun">],</span>',
+        '  <span class="j-key">"meta"</span><span class="j-pun">: {</span>',
+        '    <span class="j-key">"query"</span><span class="j-pun">: {</span>',
+        '      <span class="j-key">"version"</span><span class="j-pun">:</span> <span class="j-str">"1.0"</span><span class="j-pun">,</span>',
+        '      <span class="j-key">"limit"</span><span class="j-pun">:</span>   <span class="j-num">10</span>',
+        '    <span class="j-pun">}</span>',
+        '  <span class="j-pun">}</span>',
+        '<span class="j-pun">}</span>',
+      ),
+    },
+  ];
+
+  const HOLD_MS       = 3800;
+  const TRANSITION_MS = 280;
+
+  let current = 0;
+  let timer;
+
+  const codeEl     = document.getElementById('hero-code');
+  const preEl      = document.getElementById('hero-pre');
+  const filenameEl = document.getElementById('hero-filename');
+  const tabs       = Array.from(document.querySelectorAll('.pipe-tab'));
+
+  function setStage(idx) {
+    codeEl.innerHTML       = stages[idx].html;
+    filenameEl.textContent = stages[idx].filename;
+    preEl.dataset.lang     = stages[idx].lang;
+  }
+
+  let hovered = false;
+
+  setStage(0);
+
+  function activateTab(idx) {
+    tabs.forEach((t, i) => {
+      const on = i === idx;
+      t.setAttribute('aria-selected', String(on));
+      if (on) {
+        t.classList.remove('active');
+        void t.offsetWidth;
+        t.classList.add('active');
+        // If user is hovering, immediately pause the new progress bar
+        if (hovered) t.style.animationPlayState = 'paused';
+      } else {
+        t.classList.remove('active');
+        t.style.animationPlayState = '';
+      }
+    });
+  }
+
+  function goTo(idx, direction) {
+    const exitClass  = direction >= 0 ? 'slide-exit-up'         : 'slide-exit-down';
+    const enterClass = direction >= 0 ? 'slide-enter-from-below' : 'slide-enter-from-above';
+    preEl.classList.add(exitClass);
+    setTimeout(() => {
+      setStage(idx);
+      activateTab(idx);
+      preEl.classList.remove(exitClass);
+      preEl.classList.add(enterClass);
+      requestAnimationFrame(() => requestAnimationFrame(() => preEl.classList.remove(enterClass)));
+    }, TRANSITION_MS);
+  }
+
+  function advance() {
+    const next = (current + 1) % stages.length;
+    goTo(next, 1);
+    current = next;
+  }
+
+  function startTimer() { timer = setInterval(advance, HOLD_MS); }
+  startTimer();
+  activateTab(0);
+
+  // Pause on hover, resume on leave
+  const pane = document.querySelector('.editor-pane');
+  if (pane) {
+    pane.addEventListener('mouseenter', () => {
+      hovered = true;
+      clearInterval(timer);
+      const activeTab = document.querySelector('.pipe-tab.active');
+      if (activeTab) activeTab.style.animationPlayState = 'paused';
+    });
+    pane.addEventListener('mouseleave', () => {
+      hovered = false;
+      const activeTab = document.querySelector('.pipe-tab.active');
+      if (activeTab) activeTab.style.animationPlayState = 'running';
+      startTimer();
+    });
+  }
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const idx = parseInt(tab.dataset.idx, 10);
+      if (idx === current) return;
+      clearInterval(timer);
+      goTo(idx, idx > current ? 1 : -1);
+      current = idx;
+      if (!hovered) startTimer();
+    });
+  });
+
+  const copyBtn = document.getElementById('hero-copy-btn');
+  if (copyBtn) {
+    const copyIcon  = copyBtn.innerHTML;
+    const checkIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(codeEl.innerText);
+      copyBtn.innerHTML   = checkIcon;
+      copyBtn.style.color = '#00D2B4';
+      setTimeout(() => { copyBtn.innerHTML = copyIcon; copyBtn.style.color = ''; }, 2000);
+    });
+  }
+</script>
 
 <style>
   .custom-hero {
     display: flex;
     flex-direction: column-reverse;
     gap: 2rem;
-    padding: 3rem 0;
+    padding: 3rem 0 2rem;
     align-items: center;
     text-align: center;
   }
-  
+
   @media (min-width: 768px) {
     .custom-hero {
       flex-direction: row;
       text-align: left;
-      justify-content: space-between;
+      align-items: center;
+      gap: 4rem;
     }
-    .hero-text {
-      flex: 1;
-      max-width: 50%;
-    }
-    .hero-anim {
-      flex: 1;
-      width: 100%;
-    }
-    .hero-anim img {
-      width: 100%;
-      height: auto;
-      object-fit: contain;
-    }
-    .hero-actions {
-      justify-content: flex-start;
-    }
+    .hero-text    { flex: 1; }
+    .hero-editor  { flex: 1; }
+    .hero-actions { justify-content: flex-start; }
   }
 
   .hero-title {
     font-size: var(--sl-text-5xl) !important;
     line-height: 1.1;
-    font-weight: 900;
+    font-weight: 800;
     margin-bottom: 1rem;
-    background: linear-gradient(to right, var(--sl-color-white), var(--sl-color-accent-high));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--sl-color-white);
   }
-
+  .hero-accent { color: var(--jql-blue, #3498DB); }
   .hero-tagline {
     font-size: var(--sl-text-xl);
     color: var(--sl-color-gray-2);
     margin-bottom: 2rem;
   }
-
   .hero-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
     justify-content: center;
   }
+
+  /* ── Editor shell ── */
+  .hero-editor { position: relative; width: 100%; }
+
+  .editor-glow {
+    position: absolute;
+    inset: -2.5rem;
+    background: radial-gradient(ellipse at 50% 50%, rgba(52, 152, 219, 0.18) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .editor-pane {
+    position: relative;
+    z-index: 1;
+    background: #0D0E12;
+    border: 1px solid #2D3139;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  }
+
+  /* Title bar */
+  .editor-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background: #161819;
+    border-bottom: 1px solid #2D3139;
+  }
+  .editor-dots { display: flex; gap: 6px; }
+  .editor-dots span { width: 10px; height: 10px; border-radius: 50%; display: block; }
+
+  .editor-filename {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.07em;
+    color: #6b7280;
+    transition: color 0.2s ease;
+  }
+
+  .editor-copy {
+    background: none; border: none; cursor: pointer;
+    color: #4b5563; padding: 2px;
+    display: flex; align-items: center;
+    border-radius: 4px;
+    transition: color 0.15s ease;
+  }
+  .editor-copy:hover { color: #e2e2e3; }
+
+  /* Pipeline tab bar */
+  .editor-pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 0.75rem;
+    background: #111214;
+    border-bottom: 1px solid #1e2124;
+    margin-top: 0 !important; /* Starlight adds margin-top to sibling divs */
+  }
+
+  .pipe-tab {
+    position: relative;
+    background: none; border: none; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    padding: 7px 7px 9px;
+    color: #374151;
+    transition: color 0.15s ease;
+    overflow: hidden;
+    white-space: nowrap;
+    /* Reset Starlight's :not()+:not() margin-top that misaligns flex siblings */
+    margin-top: 0 !important;
+  }
+  .pipe-tab:hover  { color: #6b7280; }
+  .pipe-tab.active { color: #00D2B4; }
+
+  /* Teal progress underline */
+  .pipe-tab::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 2px; width: 0;
+    background: #00D2B4;
+    border-radius: 1px;
+  }
+  .pipe-tab.active::after { animation: tab-progress 3.8s linear forwards; }
+  @keyframes tab-progress { from { width: 0; } to { width: 100%; } }
+
+  .pipe-arrow {
+    width: 14px; height: 8px;
+    color: #1e2124;
+    flex-shrink: 0;
+    margin: 0 1px !important; /* !important resets Starlight's inherited margin-top */
+  }
+
+  /* ── Code area ── */
+  .editor-body {
+    padding: 0;
+    overflow-x: auto;
+    min-height: 12rem;
+    scrollbar-width: thin;
+    scrollbar-color: #2D3139 #0D0E12;
+  }
+  .editor-body::-webkit-scrollbar       { height: 5px; }
+  .editor-body::-webkit-scrollbar-track { background: #0D0E12; }
+  .editor-body::-webkit-scrollbar-thumb { background: #2D3139; border-radius: 2px; }
+
+  #hero-pre {
+    margin: 0 !important;
+    padding: 0.75rem 0 !important;
+    background: transparent !important;
+    border: none !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 12.5px !important;
+    line-height: 1.7 !important;
+    white-space: pre !important;
+    transition: opacity 280ms ease, transform 280ms ease;
+  }
+
+  #hero-pre code {
+    background: transparent !important;
+    padding: 0 !important;
+    font-size: inherit !important;
+    white-space: inherit !important;
+    color: #e2e2e3;
+    display: block;
+  }
+
+  /* ── Line rows ──
+     .ln/.ln-n are inserted at runtime via innerHTML, so Astro's scoped hash
+     won't be on them. :global() opts out of scoping for these rules.
+  ── */
+  :global(#hero-pre .ln-n) {
+    display: inline-block;
+    min-width: 2rem;
+    text-align: right;
+    margin-right: 1rem;
+    padding-right: 0.625rem;
+    color: #2a3038;
+    font-size: 10.5px;
+    line-height: inherit;
+    user-select: none;
+    pointer-events: none;
+    border-right: 1px solid #1e2530;
+  }
+
+  :global(#hero-pre .ln) {
+    display: block !important;
+  }
+  :global(#hero-pre .ln:hover) {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  /* ── Transition states ── */
+  #hero-pre.slide-exit-up    { opacity: 0; transform: translateY(-10px); }
+  #hero-pre.slide-exit-down  { opacity: 0; transform: translateY(10px);  }
+  #hero-pre.slide-enter-from-below,
+  #hero-pre.slide-enter-from-above { transition: none !important; opacity: 0; }
+  #hero-pre.slide-enter-from-below { transform: translateY(10px);  }
+  #hero-pre.slide-enter-from-above { transform: translateY(-10px); }
+
+  /* ── Syntax tokens — :global() because spans are runtime-injected ── */
+  :global(.j-key)     { color: #4ec9b0; }                     /* JSON keys       → teal      */
+  :global(.j-str)     { color: #ce9178; }                     /* strings         → rust      */
+  :global(.j-num)     { color: #b5cea8; }                     /* numbers         → sage      */
+  :global(.j-op)      { color: #569cd6; }                     /* JSON operators  → blue      */
+  :global(.j-pun)     { color: #586069; }                     /* punctuation     → muted     */
+  :global(.j-kw)      { color: #569cd6; font-weight: 600; }   /* SQL keywords    → blue bold */
+  :global(.j-param)   { color: #9cdcfe; }                     /* SQL $params     → sky       */
+  :global(.j-comment) { color: #3d4d5c; font-style: italic; } /* comments        → dark gray */
 </style>
+

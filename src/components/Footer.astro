@@ -1,0 +1,153 @@
+---
+// Replaces Starlight's default footer
+---
+
+<footer class="jql-footer">
+  <div class="jql-footer-inner">
+    <div class="jql-footer-grid">
+
+      <!-- Brand -->
+      <div class="jql-footer-brand">
+        <a href="/" class="jql-footer-logo">JSONQL</a>
+        <p class="jql-footer-tagline">
+          Precision-engineered for the modern web. The standard for JSON data
+          orchestration.
+        </p>
+      </div>
+
+      <!-- Resources -->
+      <div>
+        <h4 class="jql-footer-heading">Resources</h4>
+        <ul class="jql-footer-links">
+          <li><a href="/spec/overview/">Specification</a></li>
+          <li><a href="/getting-started/">Documentation</a></li>
+          <li><a href="/sdk/go/">SDKs</a></li>
+          <li><a href="/guides/query-language/">Query Language</a></li>
+        </ul>
+      </div>
+
+      <!-- Community -->
+      <div>
+        <h4 class="jql-footer-heading">Community</h4>
+        <ul class="jql-footer-links">
+          <li>
+            <a href="https://github.com/JSONQL-Standard" target="_blank" rel="noopener">
+              GitHub
+            </a>
+          </li>
+          <li><a href="/contributing/">Contributing</a></li>
+          <li><a href="/roadmap/">Roadmap</a></li>
+        </ul>
+      </div>
+
+      <!-- Project -->
+      <div>
+        <h4 class="jql-footer-heading">Project</h4>
+        <ul class="jql-footer-links">
+          <li><a href="/guides/architecture/">Architecture</a></li>
+          <li><a href="/spec/compliance/">Compliance</a></li>
+          <li><a href="/guides/integration-testing/">Integration Testing</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="jql-footer-bottom">
+      <p class="jql-footer-copy">© 2026 JSONQL Foundation. Precision-engineered for the modern web.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .jql-footer {
+    background: var(--sl-color-bg-sidebar, #1a1c1d);
+    border-top: 1px solid var(--jql-border, #2D3139);
+    width: 100%;
+    padding: 3rem 1.5rem 2rem;
+    margin-top: 4rem;
+  }
+
+  .jql-footer-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .jql-footer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem 3rem;
+    margin-bottom: 2.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .jql-footer-grid {
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+    }
+  }
+
+  .jql-footer-logo {
+    font-family: 'Geist', var(--sl-font, system-ui), sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--jql-blue, #3498DB);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  .jql-footer-tagline {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--sl-color-gray-3, #94A3B8);
+    margin: 0;
+    max-width: 22ch;
+  }
+
+  .jql-footer-heading {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sl-color-gray-3, #94A3B8);
+    margin: 0 0 0.875rem;
+  }
+
+  .jql-footer-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .jql-footer-links a {
+    font-size: 0.875rem;
+    color: var(--sl-color-gray-2, #bfc7d2);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+  .jql-footer-links a:hover {
+    color: var(--jql-teal, #00D2B4);
+    text-decoration: underline;
+  }
+
+  .jql-footer-bottom {
+    border-top: 1px solid color-mix(in srgb, var(--jql-border, #2D3139) 40%, transparent);
+    padding-top: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .jql-footer-copy {
+    font-size: 0.8125rem;
+    color: var(--sl-color-gray-3, #94A3B8);
+    margin: 0;
+  }
+
+
+</style>

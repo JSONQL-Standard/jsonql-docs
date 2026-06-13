@@ -14,6 +14,7 @@ export default defineConfig({
         description: 'A JSON-native query language and multi-SDK ecosystem for modern APIs and databases.',
         components: {
             Head: './src/components/Head.astro',
+            Footer: './src/components/Footer.astro',
         },
         logo: {
             src: './src/assets/logo.svg',
