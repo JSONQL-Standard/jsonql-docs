@@ -76,6 +76,35 @@ urlpatterns = [
 
 **That's it.** One execute function, one router mount. Your clients can now query any table dynamically.
 
+### MongoDB
+
+For MongoDB-backed APIs, use the `*_mongo` adapters. They take a connected
+`database` instead of an `execute` function and produce the same `{meta, data}`
+response contract:
+
+```python
+from flask import Flask
+from jsonql import must_connect_mongo, must_load_schema
+from jsonql.adapters import create_flask_mongo_blueprint, MongoAdapterOptions
+
+client, db = must_connect_mongo("mongodb://localhost:27017", "mydb")
+schema = must_load_schema("schema.json")
+
+app = Flask(__name__)
+bp = create_flask_mongo_blueprint(MongoAdapterOptions(database=db, schema=schema))
+app.register_blueprint(bp, url_prefix="/api")
+
+app.run(port=8080)
+```
+
+The same family is available for every framework:
+
+| Framework | SQL adapter | MongoDB adapter |
+|-----------|-------------|-----------------|
+| Flask | `create_flask_blueprint` | `create_flask_mongo_blueprint` |
+| FastAPI | `create_fastapi_router` | `create_fastapi_mongo_router` |
+| Django | `create_django_urls` | `JsonQLDjangoMongoView` |
+
 ## What Your Clients Can Do
 
 Every query is a JSON POST to `/api/{table}`:
@@ -303,6 +332,34 @@ pytest                    # Run all tests
 ruff check .              # Lint (rules E/F/I/W)
 mypy src/                 # Type checking (strict)
 ```
+
+## Architecture
+
+The SDK is organised into 12 canonical modules. A request flows through them in order:
+
+```
+parser → validator → transpiler → driver → drivers → hydrator
+                            ↑ factory / engine wires it together
+                            ↑ builder is an alternative input
+```
+
+| Module | File | Purpose |
+|--------|------|---------|
+| **parser** | `src/jsonql/parser.py` | Tokenise & validate incoming JSON, produce an AST |
+| **validator** | embedded in parser & schema | Schema & permission checks against the AST |
+| **transpiler** | `src/jsonql/transpiler.py` | AST → parameterised SQL for the active dialect |
+| **mongo_transpiler** | `src/jsonql/mongo_transpiler.py` | AST → MongoDB filter & aggregation pipelines |
+| **dialect** | `src/jsonql/dialect.py` | Per-flavour quoting & parameter markers (Postgres `$1`, MySQL/SQLite `?`, MSSQL `@p1`) |
+| **driver** | `src/jsonql/driver.py` | `DatabaseDriver` abstraction: execute, retry, diagnostics |
+| **drivers** | `src/jsonql/drivers/` | Concrete drivers / `execute` callables for each backend |
+| **hydrator** | `src/jsonql/hydrator.py` | Flatten join rows back into nested dicts |
+| **factory** / **engine** | `src/jsonql/factory.py`, `src/jsonql/engine.py` (`JsonQLEngine`) | One-call wiring of parser + transpiler + driver + hydrator |
+| **builder** | `src/jsonql/builder.py` | Fluent `QueryBuilder` + condition helpers (`eq`, `gt`, `in_list`, …) |
+| **schema** | `src/jsonql/schema.py` | Optional schema loader |
+| **adapters** | `src/jsonql/adapters/{flask,fastapi,django}` | Framework integrations |
+| **errors** | `src/jsonql/errors.py` | `JsonQLError` hierarchy with `error_code` |
+
+For most apps you only touch the framework adapter at install time and the **factory** / engine for advanced wiring. Everything else is automatic.
 
 ## Repo
 

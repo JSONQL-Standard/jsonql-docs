@@ -93,6 +93,44 @@ servletContext.addServlet("jsonql", new JsonQLServlet(opts))
     .addMapping("/api/*");
 ```
 
+### MongoDB
+
+For MongoDB-backed APIs, use the `*MongoAdapter` classes. They take a
+`MongoDriverInterface` (e.g. `MongoDriver` wrapping a `MongoDatabase`) and
+produce the same `{meta, data}` response contract:
+
+```java
+import org.jsonql.MongoDriver;
+import org.jsonql.adapter.MongoAdapterOptions;
+import org.jsonql.adapter.spring.SpringMongoAdapter;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoDatabase;
+
+@RestController
+@RequestMapping("/api")
+public class JsonQLMongoController {
+
+    private final SpringMongoAdapter adapter;
+
+    public JsonQLMongoController() {
+        MongoClient client = MongoClients.create("mongodb://localhost:27017");
+        MongoDatabase db = client.getDatabase("mydb");
+        MongoAdapterOptions opts = new MongoAdapterOptions()
+            .driver(new MongoDriver(client, db));
+
+        this.adapter = new SpringMongoAdapter(opts);
+    }
+
+    @PostMapping("/{collection}")
+    public Object query(@PathVariable String collection, @RequestBody Map<String, Object> body) {
+        var result = adapter.handle(body, "POST", collection);
+        return ResponseEntity.status(result.status).body(result.body);
+    }
+}
+```
+
+The Jakarta variant is `JakartaMongoAdapter`, constructed the same way.
+
 ## What Your Clients Can Do
 
 Every query is a JSON POST to `/api/{table}`:
@@ -298,6 +336,34 @@ String query = QueryBuilder.from("users")
 mvn test                # Run all tests (JUnit 4 + H2)
 mvn verify              # Full verification including integration tests
 ```
+
+## Architecture
+
+The SDK is organised into 12 canonical modules. A request flows through them in order:
+
+```
+parser → validator → transpiler → driver → drivers → hydrator
+                            ↑ factory wires it together
+                            ↑ builder is an alternative input
+```
+
+| Module | File | Purpose |
+|--------|------|---------|
+| **parser** | `JsonQLParser.java` | Tokenise & validate incoming JSON, produce an AST |
+| **validator** | embedded in parser & schema | Schema & permission checks against the AST |
+| **transpiler** | `SQLTranspiler.java` | AST → parameterised SQL for the active dialect |
+| **mongo_transpiler** | `MongoTranspiler.java` | AST → MongoDB filter & aggregation pipelines |
+| **dialect** | `dialect/*.java` | Per-flavour quoting & parameter markers (Postgres `$1`, MySQL/SQLite `?`, MSSQL `@p1`) |
+| **driver** | `JsonQLDriver.java` | Interface: `query()`, `execute()`, `close()` |
+| **drivers** | per JDBC driver (Postgres, MySQL, SQLite, MSSQL) + `mongodb` | Concrete backends |
+| **hydrator** | `hydrator/` | Flatten join rows back into nested POJOs/maps |
+| **factory** | `JsonQLFactory.java` (`JsonQLFactory.builder()`) | One-call wiring of parser + transpiler + driver + hydrator |
+| **builder** | `QueryBuilder.java` | Fluent programmatic query construction |
+| **schema** | `schema/` (`JsonQLSchema.builder()`) | Optional schema loader |
+| **adapters** | `adapter/{spring,servlet}` | Framework integrations |
+| **errors** | `JsonQLException` and subclasses | Error hierarchy with `getErrorCode()` |
+
+For most apps you only touch **adapters** at install time and the **factory** for advanced wiring. Everything else is automatic.
 
 ## Repo
 

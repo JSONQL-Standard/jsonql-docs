@@ -74,6 +74,34 @@ export class AppModule {}
 
 **That's it.** No query controllers, no endpoint-per-filter, no route boilerplate. Your clients can now query any table dynamically.
 
+### MongoDB
+
+For MongoDB-backed APIs, use the Mongo adapter variants. They take a `database`
+(a connected `mongodb` `Db`) instead of a SQL `driver` and produce the same
+`{ meta, data }` response contract:
+
+```typescript
+import express from 'express';
+import { jsonqlExpressMongo, connectMongo } from '@jsonql-standard/jsonql-ts';
+
+const app = express();
+app.use(express.json());
+
+const { db } = await connectMongo({ uri: 'mongodb://localhost:27017', dbName: 'mydb' });
+
+app.use('/api', jsonqlExpressMongo({ database: db }));
+
+app.listen(3000);
+```
+
+The same family is available for every framework:
+
+| Framework | SQL adapter | MongoDB adapter |
+|-----------|-------------|-----------------|
+| Express | `jsonqlExpress` | `jsonqlExpressMongo` |
+| Fastify | `jsonqlFastify` | `jsonqlFastifyMongo` |
+| NestJS | `JsonqlService` | `JsonqlMongoService` |
+
 ## What Your Clients Can Do
 
 Every query is a JSON POST to `/api/{table}`:
@@ -227,6 +255,32 @@ const query = new JSONQLQueryBuilder()
   .build();
 ```
 
+## Advanced: Engine Facade
+
+When you want the full pipeline (parse → validate → transpile → execute →
+hydrate) without wiring a framework adapter, use the `JSONQLEngine` facade.
+It mirrors the `Engine` builder shipped by the Go, Python, and Java SDKs, so
+the high-level API is consistent across the ecosystem.
+
+```typescript
+import { JSONQLEngine } from '@jsonql-standard/jsonql-ts';
+
+const engine = JSONQLEngine.builder()
+  .postgres()
+  .schema(schema)
+  .driver(driver) // or .executor(async (sql, params) => db.query(sql, params))
+  .build();
+
+const result = await engine.execute({ where: { age: { gt: 18 } } }, 'users');
+console.log(result.data); // hydrated rows
+console.log(result.isMutation); // false
+```
+
+Builder methods: `.postgres()` / `.mysql()` / `.sqlite()` / `.mssql()` (or
+`.dialect(name)`), `.schema()`, `.driver()`, `.executor()`, `.logger()`,
+`.parserOptions()`, `.debug()`, then `.build()`. When a `.driver()` is set and
+no dialect was chosen, the dialect is inferred from the driver.
+
 ## Advanced: Low-Level Transpiler
 
 Use the transpiler directly for custom pipelines:
@@ -247,6 +301,7 @@ const { sql, parameters } = transpiler.transpile(query, 'users');
 | `jsonqlFastify` | Fastify plugin with auto-routing |
 | `JsonqlModule` | NestJS module with injectable service |
 | `JSONQLParser` | Parse & validate incoming JSON |
+| `JSONQLEngine` | High-level pipeline facade (parse→validate→transpile→execute→hydrate) |
 | `SQLTranspiler` | Convert parsed query → SQL + params |
 | `ResultHydrator` | Flatten SQL joins → nested JSON |
 | `JSONQLQueryBuilder` | Fluent query construction (advanced) |
@@ -269,6 +324,35 @@ const { sql, parameters } = transpiler.transpile(query, 'users');
 npm install && npm test       # Install + test
 npx prettier --check .        # Format check (CI enforced)
 ```
+
+## Architecture
+
+The SDK is organised into 12 canonical modules. A request flows through them in order:
+
+```
+parser → validator → transpiler → driver → drivers → hydrator
+                            ↑ factory wires it together
+                            ↑ builder is an alternative input
+```
+
+| Module | File | Purpose |
+|--------|------|---------|
+| **parser** | `src/parser/` | Tokenise & validate incoming JSON, produce an AST |
+| **validator** | `src/validator/` | Schema & permission checks against the AST |
+| **transpiler** | `src/transpiler/` | AST → parameterised SQL for the active dialect |
+| **mongo_transpiler** | `src/transpiler/mongo.ts` | AST → MongoDB filter & aggregation pipelines |
+| **dialect** | `src/transpiler/dialect.ts` | Per-flavour quoting & parameter markers (Postgres `$1`, MySQL/SQLite `?`, MSSQL `@p1`) |
+| **driver** | `src/driver.ts` | Orchestrates execute → retry → diagnostics |
+| **drivers** | `src/drivers/` | Concrete backends: `postgres`, `mysql`, `sqlite`, `mssql`, `mongodb` |
+| **hydrator** | `src/hydrator.ts` | Flatten join rows back into nested JSON |
+| **engine** | `src/engine.ts` | High-level facade running the full pipeline via a fluent builder |
+| **factory** | `src/core.ts` (`createJsonql()` helper) | One-call wiring of parser + transpiler + driver + hydrator |
+| **builder** | `src/builder/` | Fluent `JSONQLQueryBuilder` / `JSONQLMutationBuilder` |
+| **schema** | `src/schema/` | Optional schema loader (introspection + JSON) |
+| **adapters** | `src/adapters/` | Framework integrations: `express`, `fastify`, `nestjs` |
+| **errors** | `src/errors.ts` | `JsonQLError` hierarchy with `error_code` |
+
+For most apps you only touch **adapters** at install time and the **factory** for advanced wiring. Everything else is automatic.
 
 ## Repo
 

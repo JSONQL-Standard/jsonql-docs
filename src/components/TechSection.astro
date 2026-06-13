@@ -1,0 +1,149 @@
+---
+import { Image } from 'astro:assets';
+import bannerImage from '../assets/jsonql-hero-banner-logos.png';
+---
+
+<section class="tech-section">
+  <div class="tech-image-col">
+    <Image
+      src={bannerImage}
+      alt="JSONQL SDK ecosystem — Go, TypeScript, Python, Java"
+      loading="lazy"
+      class="tech-image"
+    />
+  </div>
+
+  <div class="tech-text-col">
+    <h2 class="tech-heading">Architected for Speed &amp; Reliability</h2>
+
+    <div class="tech-bullets">
+      <div class="tech-bullet">
+        <span class="tech-icon tech-icon--teal" aria-hidden="true">
+          <!-- bolt -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/>
+          </svg>
+        </span>
+        <div>
+          <h4 class="tech-bullet-title">Zero-Runtime Overhead</h4>
+          <p class="tech-bullet-body">
+            JSONQL queries are validated and transpiled into native, parameterized
+            database operations — no dynamic code generation at request time.
+          </p>
+        </div>
+      </div>
+
+      <div class="tech-bullet">
+        <span class="tech-icon tech-icon--blue" aria-hidden="true">
+          <!-- shield -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L4 5v6c0 5.25 3.4 10.15 8 11.35C16.6 21.15 20 16.25 20 11V5l-8-3z"/>
+          </svg>
+        </span>
+        <div>
+          <h4 class="tech-bullet-title">Type-Safe by Design</h4>
+          <p class="tech-bullet-body">
+            Strongly-typed SDKs for TypeScript, Go, Python, and Java keep your
+            query surface and response shapes in sync across the entire stack.
+          </p>
+        </div>
+      </div>
+
+      <div class="tech-bullet">
+        <span class="tech-icon tech-icon--secondary" aria-hidden="true">
+          <!-- grid -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h7v7h-7v-7z"/>
+          </svg>
+        </span>
+        <div>
+          <h4 class="tech-bullet-title">Universal Portability</h4>
+          <p class="tech-bullet-body">
+            One query language, five databases. Switch from MongoDB to PostgreSQL
+            without changing a single line of application logic.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .tech-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    margin: 4rem 0 2rem;
+    align-items: center;
+  }
+
+  @media (min-width: 768px) {
+    .tech-section {
+      flex-direction: row;
+      gap: 4rem;
+      align-items: center;
+    }
+    .tech-image-col { flex: 1; }
+    .tech-text-col  { flex: 1; }
+  }
+
+  /* Image: starts grayscale, colour on hover */
+  .tech-image {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    border: 1px solid var(--jql-border, #2D3139);
+    filter: grayscale(1);
+    transition: filter 0.6s ease, box-shadow 0.4s ease;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+  }
+  .tech-image:hover {
+    filter: grayscale(0);
+    box-shadow: 0 8px 48px rgba(52, 152, 219, 0.18);
+  }
+
+  .tech-heading {
+    font-family: 'Geist', var(--sl-font, system-ui), sans-serif;
+    font-size: var(--sl-text-2xl, 1.5rem);
+    font-weight: 700;
+    margin: 0 0 1.75rem;
+    color: var(--sl-color-white);
+  }
+
+  .tech-bullets {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .tech-bullet {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .tech-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tech-icon--teal     { color: var(--jql-teal, #00D2B4); }
+  .tech-icon--blue     { color: var(--jql-blue, #3498DB); }
+  .tech-icon--secondary{ color: #43edcd; }
+
+  .tech-bullet-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 0.3rem;
+    color: var(--sl-color-white);
+  }
+
+  .tech-bullet-body {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--sl-color-gray-2, #bfc7d2);
+    margin: 0;
+  }
+</style>

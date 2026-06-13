@@ -1,10 +1,43 @@
+/* ── Hide logo text (uses logo image instead) ── */
 .header .site-title span {
   display: none;
 }
 
+/* ── Design tokens ── */
 :root {
-  --sl-color-accent: #37B3FA;
-  --sl-scrollbar-color: #37B3FA;
-  --sl-color-text-accent: #37B3FA;
-  --sl-color-accent-high: #37B3FA;
+  /* Starlight accent */
+  --sl-color-accent:       #3498DB;
+  --sl-color-accent-high:  #3498DB;
+  --sl-color-text-accent:  #3498DB;
+  --sl-scrollbar-color:    #3498DB;
+
+  /* Monospace font applied to all code blocks */
+  --sl-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* JSONQL brand tokens */
+  --jql-teal:      #00D2B4;
+  --jql-blue:      #3498DB;
+  --jql-bg-editor: #0D0E12;
+  --jql-border:    #2D3139;
+  --jql-gray:      #94A3B8;
+}
+
+/* ── Geist for headings ── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Geist', var(--sl-font, system-ui), sans-serif;
+}
+
+/* ── Card grid: equal-height rows ── */
+.card-grid {
+  align-items: stretch !important;
+}
+
+/* ── Card hover: teal border flash ── */
+article.card {
+  height: 100%;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+article.card:hover {
+  border-color: var(--jql-teal) !important;
+  box-shadow: 0 0 0 1px var(--jql-teal), 0 4px 24px rgba(0, 210, 180, 0.07);
 }

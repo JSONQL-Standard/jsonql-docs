@@ -12,9 +12,9 @@ Every JSONQL SDK and adapter is tested against the same compliance suite to guar
 | **SDKs** | 4 (Go, TypeScript, Java, Python) |
 | **Frameworks** | 11 (Gin, Echo, net/http, Express, Fastify, NestJS, Spring Boot, Jakarta EE, Flask, FastAPI, Django) |
 | **Databases** | 5 (PostgreSQL, MySQL, SQLite, MSSQL, MongoDB) |
-| **Total configurations** | 63 (15 TS + 18 Go + 12 Java + 18 Python) |
+| **Total configurations** | 66 (18 TS + 18 Go + 12 Java + 18 Python) |
 | **Tests per configuration** | 135 |
-| **Total test executions** | 8,505 |
+| **Total test executions** | 8,910 |
 
 ## Test Matrix
 
@@ -30,13 +30,13 @@ Every SDK is tested against every combination of its supported frameworks and da
 
 *+ 3 lifecycle configurations (Gin, Echo, net/http × PostgreSQL)*
 
-### TypeScript SDK (15 configurations)
+### TypeScript SDK (18 configurations)
 
-| Adapter | PostgreSQL | MySQL | SQLite | MSSQL |
-|---------|:----------:|:-----:|:------:|:-----:|
-| **Express** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
-| **Fastify** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
-| **NestJS** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| Adapter | PostgreSQL | MySQL | SQLite | MSSQL | MongoDB |
+|---------|:----------:|:-----:|:------:|:-----:|:-------:|
+| **Express** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **Fastify** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
+| **NestJS** | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 | ✅ 135/135 |
 
 *+ 3 lifecycle configurations (Express, Fastify, NestJS × PostgreSQL)*
 
